@@ -1,0 +1,14 @@
+name: Feature request
+description: Propose a new dataset, check, model or metric
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or question this answers
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
