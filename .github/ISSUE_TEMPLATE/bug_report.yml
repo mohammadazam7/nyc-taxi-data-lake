@@ -1,0 +1,27 @@
+name: Bug report
+description: Something in the pipeline produced wrong data or failed
+labels: [bug]
+body:
+  - type: input
+    id: stage
+    attributes:
+      label: Pipeline stage
+      placeholder: ingest / clean / model / quality / load
+    validations:
+      required: true
+  - type: input
+    id: month
+    attributes:
+      label: Month(s) affected
+      placeholder: 2024-01
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what you expected
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Command and logs
+      render: shell
