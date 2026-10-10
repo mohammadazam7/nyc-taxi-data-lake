@@ -29,7 +29,10 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
-markers = ["network: tests that download real TLC data (skipped in CI)"]
+markers = [
+  "network: tests that download real TLC data (skipped in CI)",
+  "spark: tests that start a local Spark session (need Java and the [spark] extra)",
+]
 
 [tool.ruff]
 line-length = 100
