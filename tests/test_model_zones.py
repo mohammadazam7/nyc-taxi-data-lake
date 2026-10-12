@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from nyc_taxi_lake.model.zones import LOOKUP_COLUMNS, write_sample_lookup
+from nyc_taxi_lake.ingest.zone_lookup import LOOKUP_COLUMNS, write_sample_lookup
 
 if TYPE_CHECKING:
     from pyspark.sql import SparkSession
