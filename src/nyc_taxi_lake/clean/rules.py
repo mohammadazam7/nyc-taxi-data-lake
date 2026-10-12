@@ -13,10 +13,8 @@ from pyspark.sql import Column, DataFrame, Window
 from pyspark.sql import functions as F
 
 from nyc_taxi_lake.months import Month
+from nyc_taxi_lake.schema import MAX_ZONE_ID, MIN_ZONE_ID
 
-# TLC taxi zones are numbered 1-263; 264 and 265 mean "unknown" and "outside NYC" and
-# do appear in real files, so they are valid IDs rather than errors.
-MIN_ZONE_ID, MAX_ZONE_ID = 1, 265
 MAX_TRIP_HOURS = 24
 MAX_PASSENGERS = 9
 

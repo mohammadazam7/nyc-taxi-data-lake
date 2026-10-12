@@ -2,41 +2,20 @@
 
 TLC publishes the zone list as ``taxi_zone_lookup.csv`` next to the trip files, with the
 columns ``LocationID, Borough, Zone, service_zone``. In AWS the file is landed in the raw
-zone alongside the trips; offline, :func:`write_sample_lookup` writes a placeholder file
-with the same shape so the model job and its tests run without network access.
+zone alongside the trips. Offline, ``ingest.zone_lookup.write_sample_lookup`` writes a
+placeholder file with the same shape so the model job and its tests run without network
+access.
 """
 
 from __future__ import annotations
 
-import csv
 from pathlib import Path
 
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
 
-from nyc_taxi_lake.clean.rules import MAX_ZONE_ID
 from nyc_taxi_lake.model.dimensions import surrogate_key
 from nyc_taxi_lake.model.reference import UNKNOWN_CODE, UNKNOWN_NAME
-
-LOOKUP_FILE = "taxi_zone_lookup.csv"
-LOOKUP_COLUMNS = ("LocationID", "Borough", "Zone", "service_zone")
-
-_SAMPLE_BOROUGHS = ("Manhattan", "Queens", "Brooklyn", "Bronx", "Staten Island", "EWR")
-
-
-def write_sample_lookup(path: Path) -> Path:
-    """Write a synthetic lookup with zones 1..265 named ``Sample zone N``.
-
-    The names are placeholders, not TLC's. Use the real file for anything you publish.
-    """
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", newline="") as fh:
-        writer = csv.writer(fh)
-        writer.writerow(LOOKUP_COLUMNS)
-        for zone_id in range(1, MAX_ZONE_ID + 1):
-            borough = _SAMPLE_BOROUGHS[zone_id % len(_SAMPLE_BOROUGHS)]
-            writer.writerow([zone_id, borough, f"Sample zone {zone_id}", "Sample"])
-    return path
 
 
 def dim_zone(spark: SparkSession, lookup_csv: Path) -> DataFrame:
