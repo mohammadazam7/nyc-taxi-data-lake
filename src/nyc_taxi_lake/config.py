@@ -30,6 +30,10 @@ class Settings:
         return self.lake_root / "clean"
 
     @property
+    def quarantine_root(self) -> Path:
+        return self.lake_root / "quarantine"
+
+    @property
     def warehouse_root(self) -> Path:
         return self.lake_root / "warehouse"
 
