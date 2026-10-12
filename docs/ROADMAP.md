@@ -6,7 +6,7 @@ tagged when it completes. Checked items are done.
 - [x] **M1 · Ingest.** Package layout, month partitioning, TLC downloader with retries,
       schema conformance across TLC file versions, idempotent raw-zone writer with
       manifests, synthetic data generator, CLI, CI.
-- [ ] **M2 · Clean.** PySpark job that deduplicates trips, drops impossible records
+- [x] **M2 · Clean.** PySpark job that deduplicates trips, drops impossible records
       (negative fares, dropoff before pickup, trips outside the file's month, unknown
       zones), standardises types and writes the clean zone partitioned by pickup date.
       Rejected rows go to a quarantine table with a reason code.
