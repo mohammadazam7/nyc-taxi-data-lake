@@ -13,7 +13,7 @@ Redshift Serverless, and alerts when data quality slips.
 The same code runs on a laptop against local folders and in AWS against S3, so every
 stage is testable without a cloud account.
 
-> **Status:** under active development. Milestone 1 (ingest) is complete; see the
+> **Status:** under active development. Milestones 1–2 (ingest, clean) are complete; see the
 > [roadmap](docs/ROADMAP.md) for what's next.
 
 ## Architecture
@@ -34,7 +34,7 @@ flowchart LR
 | Stage | What it does | Status |
 |---|---|---|
 | Ingest | Download month, conform schema drift, land in raw zone with a manifest | ✅ |
-| Clean | Deduplicate, validate, quarantine bad rows | 🔜 |
+| Clean | Deduplicate, validate, quarantine bad rows | ✅ |
 | Model | `fact_trips` + date, zone, payment, vendor, rate-code dimensions | 🔜 |
 | Quality | Row-count, null, range, referential and freshness checks | 🔜 |
 | AWS | Terraform for S3, Glue, Athena, Redshift Serverless, CloudWatch, SNS | 🔜 |
@@ -52,6 +52,9 @@ nyc-lake ingest 2024-01 2024-03
 
 # Or fully offline with synthetic data that has realistic defects
 nyc-lake ingest 2024-01 2024-03 --sample
+
+# Clean the landed months (needs Java 17+ for Spark)
+nyc-lake clean 2024-01 2024-03
 ```
 
 The lake is written under `./lake` (override with `NYC_LAKE_ROOT`):
@@ -59,7 +62,32 @@ The lake is written under `./lake` (override with `NYC_LAKE_ROOT`):
 ```
 lake/raw/yellow/year=2024/month=01/part-0000.parquet
 lake/raw/yellow/year=2024/month=01/_manifest.json
+lake/clean/yellow/pickup_date=2024-01-15/part-*.parquet
+lake/clean/_runs/yellow/2024-01.json
+lake/quarantine/yellow/year=2024/month=01/part-*.parquet
 ```
+
+`nyc-lake clean` prints one line per month: rows in, rows kept, rows quarantined and the
+count for each reason code.
+
+## Clean stage rules
+
+Each rejected row is tagged with the first rule it breaks. The codes are part of the
+data contract, since quality checks and dashboards group by them.
+
+| Code | Rejected when |
+|---|---|
+| `MISSING_TIMESTAMP` | pickup or dropoff time is null |
+| `OUTSIDE_FILE_MONTH` | pickup falls outside the month the file covers |
+| `DROPOFF_BEFORE_PICKUP` | dropoff is earlier than pickup |
+| `TRIP_TOO_LONG` | trip lasted more than 24 hours |
+| `NEGATIVE_AMOUNT` | fare or total amount is negative |
+| `NEGATIVE_DISTANCE` | trip distance is negative |
+| `BAD_PASSENGER_COUNT` | more than 9 passengers |
+| `UNKNOWN_ZONE` | pickup or dropoff zone missing or outside 1–265 |
+| `DUPLICATE` | an identical row was already kept |
+
+Zones 264 and 265 ("unknown", "outside NYC") are valid TLC IDs and are kept.
 
 ## Design notes
 
@@ -70,6 +98,11 @@ lake/raw/yellow/year=2024/month=01/_manifest.json
   schema before it lands, so later stages see a single shape.
 - **Atomic downloads.** Files stream to `.part` and are renamed on success; a killed
   download never looks complete.
+- **Content-hash trip IDs.** TLC rows have no key, so `trip_id` is a SHA-256 of the
+  whole row. Identical rows get identical IDs, which makes deduplication a window over
+  one column and gives later stages a stable join key.
+- **Re-runnable clean job.** The clean zone uses dynamic partition overwrite, so cleaning
+  a month again replaces only that month's `pickup_date` partitions.
 - **Synthetic data with real defects.** The generator injects duplicates, negative fares,
   dropoffs before pickups, out-of-month trips and unknown zones in roughly the
   proportions seen in TLC data, so cleaning and quality stages are tested against the
@@ -81,7 +114,9 @@ lake/raw/yellow/year=2024/month=01/_manifest.json
 make check   # ruff lint + format check, mypy --strict, pytest
 ```
 
-CI runs the same checks on Python 3.11–3.13, plus an end-to-end smoke run of the CLI.
+CI runs the same checks on Python 3.11–3.13, the Spark tests on Java 17, and an
+end-to-end smoke run that ingests and cleans three synthetic months. Spark tests are
+marked `spark` and skip automatically when PySpark isn't installed.
 
 ## Project layout
 
@@ -95,6 +130,10 @@ src/nyc_taxi_lake/
     tlc.py          downloader with retries and atomic writes
     raw_zone.py     idempotent partition writer + manifests
     sample.py       synthetic data generator
+  clean/
+    rules.py        validation rules and reason codes
+    job.py          clean + quarantine writer
+  spark.py          SparkSession factory (UTC, dynamic partition overwrite)
 tests/
 docs/ROADMAP.md
 ```
