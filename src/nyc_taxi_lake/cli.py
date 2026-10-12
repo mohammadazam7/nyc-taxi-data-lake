@@ -32,6 +32,25 @@ def _ingest(args: argparse.Namespace, settings: Settings) -> list[IngestResult]:
     return results
 
 
+def _clean(args: argparse.Namespace, settings: Settings) -> int:
+    # Imported here so `nyc-lake ingest` works without the [spark] extra installed.
+    from nyc_taxi_lake.clean.job import clean_month
+    from nyc_taxi_lake.spark import get_spark
+
+    spark = get_spark("nyc-lake-clean", master=args.master)
+    try:
+        for month in month_range(args.start, args.end or args.start):
+            s = clean_month(spark, settings, month)
+            reasons = ", ".join(f"{k}={v:,}" for k, v in s.rejected_by_reason.items()) or "-"
+            print(
+                f"{s.month}  {s.rows_in:>10,} in  {s.rows_clean:>10,} clean  "
+                f"{s.rows_rejected:>8,} quarantined  ({reasons})"
+            )
+    finally:
+        spark.stop()
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="nyc-lake", description=__doc__)
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -47,6 +66,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     ingest.add_argument("--sample-rows", type=int, default=50_000)
     ingest.add_argument("--force", action="store_true", help="rewrite even if unchanged")
+
+    clean = sub.add_parser("clean", help="validate raw months into the clean and quarantine zones")
+    clean.add_argument("start", help="first month, YYYY-MM")
+    clean.add_argument("end", nargs="?", help="last month, YYYY-MM (default: start)")
+    clean.add_argument(
+        "--master",
+        default="local[*]",
+        help="Spark master URL (default: local[*]; ignored when submitted to a cluster)",
+    )
     return parser
 
 
@@ -61,7 +89,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         for r in _ingest(args, settings):
             status = "skipped" if r.skipped else "landed"
             print(f"{r.month}  {status:8}  {r.rows:>10,} rows  {r.path}")
-    return 0
+        return 0
+    if args.command == "clean":
+        return _clean(args, settings)
+    return 2
 
 
 if __name__ == "__main__":
