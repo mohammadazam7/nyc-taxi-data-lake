@@ -42,3 +42,20 @@ def test_clean_after_ingest(
     assert "quarantined" in out
     assert any((tmp_path / "clean" / "yellow").glob("pickup_date=2024-01-*"))
     assert (tmp_path / "clean" / "_runs" / "yellow" / "2024-01.json").exists()
+
+
+@pytest.mark.spark
+def test_model_after_clean(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    pytest.importorskip("pyspark", reason="install the [spark] extra to run Spark tests")
+    monkeypatch.setenv("NYC_LAKE_ROOT", str(tmp_path))
+    main(["ingest", "2024-01", "--sample", "--sample-rows", "1000"])
+    main(["clean", "2024-01", "--master", "local[2]"])
+    capsys.readouterr()
+
+    assert main(["model", "2024-01", "--sample-zones", "--master", "local[2]"]) == 0
+    out = capsys.readouterr().out
+    assert "placeholder zone lookup" in out
+    assert "fact rows" in out
+    assert any((tmp_path / "warehouse" / "yellow" / "fact_trips").glob("pickup_date=2024-01-*"))

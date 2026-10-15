@@ -13,7 +13,7 @@ Redshift Serverless, and alerts when data quality slips.
 The same code runs on a laptop against local folders and in AWS against S3, so every
 stage is testable without a cloud account.
 
-> **Status:** under active development. Milestones 1–2 (ingest, clean) are complete; see the
+> **Status:** under active development. Milestones 1–3 (ingest, clean, model) are complete; see the
 > [roadmap](docs/ROADMAP.md) for what's next.
 
 ## Architecture
@@ -35,7 +35,7 @@ flowchart LR
 |---|---|---|
 | Ingest | Download month, conform schema drift, land in raw zone with a manifest | ✅ |
 | Clean | Deduplicate, validate, quarantine bad rows | ✅ |
-| Model | `fact_trips` + date, zone, payment, vendor, rate-code dimensions | 🔜 |
+| Model | `fact_trips` + date, zone, payment, vendor, rate-code dimensions | ✅ |
 | Quality | Row-count, null, range, referential and freshness checks | 🔜 |
 | AWS | Terraform for S3, Glue, Athena, Redshift Serverless, CloudWatch, SNS | 🔜 |
 
@@ -55,6 +55,10 @@ nyc-lake ingest 2024-01 2024-03 --sample
 
 # Clean the landed months (needs Java 17+ for Spark)
 nyc-lake clean 2024-01 2024-03
+
+# Build the star schema. It needs TLC's taxi_zone_lookup.csv in lake/raw/reference/;
+# --sample-zones writes a placeholder there if it is missing.
+nyc-lake model 2024-01 2024-03 --sample-zones
 ```
 
 The lake is written under `./lake` (override with `NYC_LAKE_ROOT`):
@@ -65,6 +69,9 @@ lake/raw/yellow/year=2024/month=01/_manifest.json
 lake/clean/yellow/pickup_date=2024-01-15/part-*.parquet
 lake/clean/_runs/yellow/2024-01.json
 lake/quarantine/yellow/year=2024/month=01/part-*.parquet
+lake/warehouse/yellow/fact_trips/pickup_date=2024-01-15/part-*.parquet
+lake/warehouse/yellow/dim_zone/part-*.parquet   (and the other dimensions)
+lake/warehouse/_runs/yellow/2024-01.json
 ```
 
 `nyc-lake clean` prints one line per month: rows in, rows kept, rows quarantined and the
@@ -88,6 +95,34 @@ data contract, since quality checks and dashboards group by them.
 | `DUPLICATE` | an identical row was already kept |
 
 Zones 264 and 265 ("unknown", "outside NYC") are valid TLC IDs and are kept.
+
+## Star schema
+
+```mermaid
+erDiagram
+    fact_trips }o--|| dim_date : "pickup_date_key, dropoff_date_key"
+    fact_trips }o--|| dim_zone : "pickup_zone_key, dropoff_zone_key"
+    fact_trips }o--|| dim_vendor : vendor_key
+    fact_trips }o--|| dim_rate_code : rate_code_key
+    fact_trips }o--|| dim_payment_type : payment_type_key
+```
+
+The grain of `fact_trips` is one clean trip. It carries the trip's timestamps, duration,
+distance, passenger count and the nine money columns. The Redshift DDL is in
+[`sql/redshift/star_schema.sql`](sql/redshift/star_schema.sql); a test builds each table
+with the Spark job and checks its columns and types against that file, because
+`COPY` from Parquet matches columns by position.
+
+- **Hash surrogate keys.** `dim_date` uses `yyyymmdd`. The other dimensions key on
+  `xxhash64(dimension name, natural key)`, which is the same on every run, so a month of
+  facts can be rebuilt on its own without a key lookup or a join to the dimensions.
+- **Unknown members.** Every dimension has a row with code `-1`. A null code, or one
+  missing from the TLC data dictionary, points there instead of leaving a dangling key.
+- **SCD type 1.** The dimensions are small and rewritten in full on each run; nothing
+  downstream needs old vendor or zone names.
+- **Code lists in code.** Vendors, rate codes and payment types come from the TLC data
+  dictionary and live in `model/reference.py`, so a change to them is reviewed like any
+  other change. Zones come from TLC's lookup file.
 
 ## Design notes
 
@@ -115,7 +150,9 @@ make check   # ruff lint + format check, mypy --strict, pytest
 ```
 
 CI runs the same checks on Python 3.11–3.13, the Spark tests on Java 17, and an
-end-to-end smoke run that ingests and cleans three synthetic months. Spark tests are
+end-to-end smoke run that ingests, cleans and models three synthetic months. TLC's
+download site is not reachable from CI, so all automated runs use the synthetic
+generator and a placeholder zone lookup. Spark tests are
 marked `spark` and skip automatically when PySpark isn't installed.
 
 ## Project layout
@@ -133,7 +170,14 @@ src/nyc_taxi_lake/
   clean/
     rules.py        validation rules and reason codes
     job.py          clean + quarantine writer
+  model/
+    reference.py    TLC code lists (vendor, rate code, payment type)
+    dimensions.py   surrogate keys, code-list and date dimensions
+    zones.py        dim_zone from the TLC zone lookup
+    facts.py        fact_trips
+    job.py          warehouse-zone writer
   spark.py          SparkSession factory (UTC, dynamic partition overwrite)
+sql/redshift/       DDL for the warehouse tables
 tests/
 docs/ROADMAP.md
 ```

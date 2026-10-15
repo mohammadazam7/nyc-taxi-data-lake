@@ -10,7 +10,7 @@ tagged when it completes. Checked items are done.
       (negative fares, dropoff before pickup, trips outside the file's month, unknown
       zones), standardises types and writes the clean zone partitioned by pickup date.
       Rejected rows go to a quarantine table with a reason code.
-- [ ] **M3 · Model.** Star schema: `fact_trips` plus `dim_date`, `dim_zone`,
+- [x] **M3 · Model.** Star schema: `fact_trips` plus `dim_date`, `dim_zone`,
       `dim_payment_type`, `dim_vendor`, `dim_rate_code`. Surrogate keys, SCD-1 dims,
       PySpark build job and SQL DDL for Redshift.
 - [ ] **M4 · Data quality.** Declarative checks (row counts vs. source, null rates,

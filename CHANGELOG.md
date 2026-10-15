@@ -6,6 +6,12 @@ All notable changes are recorded here. The format follows
 ## [Unreleased]
 
 ### Added
+- Milestone 3: star schema (`nyc-lake model`). Builds `fact_trips` (one row per clean
+  trip, partitioned by `pickup_date`) and `dim_date`, `dim_zone`, `dim_vendor`,
+  `dim_rate_code` and `dim_payment_type` in the warehouse zone. Hash surrogate keys so
+  months rebuild independently, an unknown member in every dimension, SCD type 1.
+  Redshift DDL in `sql/redshift/star_schema.sql`, checked against the job's output by a
+  test. CI smoke run now includes the model stage.
 - Milestone 2: PySpark clean stage (`nyc-lake clean`). Deduplicates on a content-hash
   `trip_id`, applies eight validation rules with stable reason codes, writes the clean
   zone partitioned by `pickup_date` with snake-case names and `decimal(10,2)` money, and
