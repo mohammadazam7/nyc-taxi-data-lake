@@ -33,6 +33,10 @@ YELLOW_TRIP_SCHEMA = pa.schema(
     ]
 )
 
+# TLC taxi zones are numbered 1-263; 264 and 265 mean "unknown" and "outside NYC" and
+# do appear in real files, so they are valid IDs rather than errors.
+MIN_ZONE_ID, MAX_ZONE_ID = 1, 265
+
 # Older and newer files spell some columns differently.
 COLUMN_ALIASES: dict[str, str] = {
     "Airport_fee": "airport_fee",

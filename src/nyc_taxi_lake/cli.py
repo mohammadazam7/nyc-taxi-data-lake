@@ -51,6 +51,26 @@ def _clean(args: argparse.Namespace, settings: Settings) -> int:
     return 0
 
 
+def _model(args: argparse.Namespace, settings: Settings) -> int:
+    from nyc_taxi_lake.ingest.zone_lookup import write_sample_lookup
+    from nyc_taxi_lake.model.job import model_month, zone_lookup_path
+    from nyc_taxi_lake.spark import get_spark
+
+    lookup = zone_lookup_path(settings)
+    if args.sample_zones and not lookup.exists():
+        write_sample_lookup(lookup)
+        print(f"wrote placeholder zone lookup to {lookup}")
+
+    spark = get_spark("nyc-lake-model", master=args.master)
+    try:
+        for month in month_range(args.start, args.end or args.start):
+            s = model_month(spark, settings, month)
+            print(f"{s.month}  {s.fact_rows:>10,} fact rows  ({len(s.dim_rows)} dimensions)")
+    finally:
+        spark.stop()
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="nyc-lake", description=__doc__)
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -75,6 +95,16 @@ def build_parser() -> argparse.ArgumentParser:
         default="local[*]",
         help="Spark master URL (default: local[*]; ignored when submitted to a cluster)",
     )
+
+    model = sub.add_parser("model", help="build fact_trips and the dimensions from clean months")
+    model.add_argument("start", help="first month, YYYY-MM")
+    model.add_argument("end", nargs="?", help="last month, YYYY-MM (default: start)")
+    model.add_argument(
+        "--sample-zones",
+        action="store_true",
+        help="write a placeholder zone lookup if the real one has not been landed",
+    )
+    model.add_argument("--master", default="local[*]", help="Spark master URL")
     return parser
 
 
@@ -92,6 +122,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
     if args.command == "clean":
         return _clean(args, settings)
+    if args.command == "model":
+        return _model(args, settings)
     return 2
 
 

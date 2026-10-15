@@ -86,3 +86,9 @@ jobs:
         run: |
           nyc-lake clean 2024-01 2024-03
           test -f "$NYC_LAKE_ROOT/clean/_runs/yellow/2024-03.json"
+      - name: Model them
+        env:
+          NYC_LAKE_ROOT: ${{ runner.temp }}/lake
+        run: |
+          nyc-lake model 2024-01 2024-03 --sample-zones
+          test -f "$NYC_LAKE_ROOT/warehouse/_runs/yellow/2024-03.json"
