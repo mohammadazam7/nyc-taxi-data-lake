@@ -26,6 +26,9 @@ nyc-lake = "nyc_taxi_lake.cli:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+"nyc_taxi_lake.quality" = ["*.toml"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
