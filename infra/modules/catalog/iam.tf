@@ -26,7 +26,8 @@ locals {
   crawled_prefixes = flatten([
     for zone in ["raw", "clean", "warehouse"] : [for t in var.taxi_types : "${zone}/${t}/"]
   ])
-  catalog_arn = "arn:${local.partition}:glue:${local.region}:${local.account_id}:catalog"
+  glue_arn_prefix = "arn:${local.partition}:glue:${local.region}:${local.account_id}"
+  catalog_arn     = "${local.glue_arn_prefix}:catalog"
 }
 
 data "aws_iam_policy_document" "crawler" {
@@ -63,10 +64,12 @@ data "aws_iam_policy_document" "crawler" {
       "glue:UpdatePartition",
       "glue:BatchUpdatePartition",
     ]
+    # Built from the names rather than the resources' ARNs, so the policy is known at
+    # plan time.
     resources = concat(
       [local.catalog_arn],
-      [for db in aws_glue_catalog_database.this : db.arn],
-      [for db in aws_glue_catalog_database.this : "arn:${local.partition}:glue:${local.region}:${local.account_id}:table/${db.name}/*"],
+      [for name in values(local.databases) : "${local.glue_arn_prefix}:database/${name}"],
+      [for name in values(local.databases) : "${local.glue_arn_prefix}:table/${name}/*"],
     )
   }
 
