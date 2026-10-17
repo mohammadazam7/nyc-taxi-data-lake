@@ -142,6 +142,12 @@ _KINDS: dict[str, tuple[type[Check], set[str], dict[str, Any]]] = {
     "freshness": (Freshness, {"table", "column", "max_gap_hours"}, {}),
 }
 
+
+def kind_of(check: Check) -> str:
+    """The ``kind`` a check is written as in TOML."""
+    return next(kind for kind, (cls, _, _) in _KINDS.items() if isinstance(check, cls))
+
+
 _RECONCILE_PAIRS = {("raw", "clean"), ("clean", "fact_trips")}
 
 
