@@ -71,7 +71,7 @@ class MonthTables:
         return self._cache[name]
 
     def count(self, name: str) -> int:
-        return self.get(name).count()
+        return int(self.get(name).count())
 
     def release(self) -> None:
         for frame in self._cache.values():
