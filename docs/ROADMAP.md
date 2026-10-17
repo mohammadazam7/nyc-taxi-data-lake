@@ -13,7 +13,7 @@ tagged when it completes. Checked items are done.
 - [x] **M3 · Model.** Star schema: `fact_trips` plus `dim_date`, `dim_zone`,
       `dim_payment_type`, `dim_vendor`, `dim_rate_code`. Surrogate keys, SCD-1 dims,
       PySpark build job and SQL DDL for Redshift.
-- [ ] **M4 · Data quality.** Declarative checks (row counts vs. source, null rates,
+- [x] **M4 · Data quality.** Declarative checks (row counts vs. source, null rates,
       ranges, referential integrity, freshness) producing a JSON report per run, with a
       pluggable alert sink (log locally, SNS in AWS).
 - [ ] **M5 · AWS lake (Terraform).** S3 buckets for raw/clean/warehouse zones with
