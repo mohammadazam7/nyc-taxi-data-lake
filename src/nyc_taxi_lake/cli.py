@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import sys
 from collections.abc import Sequence
+from pathlib import Path
 
 import pyarrow.parquet as pq
 
@@ -71,6 +73,34 @@ def _model(args: argparse.Namespace, settings: Settings) -> int:
     return 0
 
 
+def _quality(args: argparse.Namespace, settings: Settings) -> int:
+    from nyc_taxi_lake.quality.alerts import make_sink
+    from nyc_taxi_lake.quality.job import check_month
+    from nyc_taxi_lake.quality.report import Status
+    from nyc_taxi_lake.quality.spec import load_suite
+    from nyc_taxi_lake.spark import get_spark
+
+    checks = load_suite(args.suite)
+    sink = make_sink(args.alert_sink, args.sns_topic_arn)
+    failing = {Status.FAIL} if args.fail_on == "error" else {Status.FAIL, Status.WARN}
+
+    spark = get_spark("nyc-lake-quality", master=args.master)
+    exit_code = 0
+    try:
+        for month in month_range(args.start, args.end or args.start):
+            report = check_month(spark, settings, month, checks, sink)
+            counts = report.to_dict()["counts"]
+            print(
+                f"{report.month}  {report.status.value:4}  {counts['pass']} passed  "
+                f"{counts['warn']} warned  {counts['fail']} failed"
+            )
+            if report.status in failing:
+                exit_code = 1
+    finally:
+        spark.stop()
+    return exit_code
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="nyc-lake", description=__doc__)
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -105,6 +135,31 @@ def build_parser() -> argparse.ArgumentParser:
         help="write a placeholder zone lookup if the real one has not been landed",
     )
     model.add_argument("--master", default="local[*]", help="Spark master URL")
+
+    quality = sub.add_parser("quality", help="run data-quality checks on modelled months")
+    quality.add_argument("start", help="first month, YYYY-MM")
+    quality.add_argument("end", nargs="?", help="last month, YYYY-MM (default: start)")
+    quality.add_argument(
+        "--suite", type=Path, help="TOML check suite (default: the suite shipped with the package)"
+    )
+    quality.add_argument(
+        "--alert-sink",
+        choices=["log", "sns"],
+        default=os.environ.get("NYC_LAKE_ALERT_SINK", "log"),
+        help="where breaches are sent (default: log, or $NYC_LAKE_ALERT_SINK)",
+    )
+    quality.add_argument(
+        "--sns-topic-arn",
+        default=os.environ.get("NYC_LAKE_SNS_TOPIC_ARN"),
+        help="topic for the sns sink (default: $NYC_LAKE_SNS_TOPIC_ARN)",
+    )
+    quality.add_argument(
+        "--fail-on",
+        choices=["error", "warn"],
+        default="error",
+        help="exit non-zero on failed error checks only (default), or on warnings too",
+    )
+    quality.add_argument("--master", default="local[*]", help="Spark master URL")
     return parser
 
 
@@ -124,6 +179,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _clean(args, settings)
     if args.command == "model":
         return _model(args, settings)
+    if args.command == "quality":
+        return _quality(args, settings)
     return 2
 
 
