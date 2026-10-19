@@ -11,7 +11,6 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from datetime import date, datetime
-from pathlib import Path
 
 from pyspark.errors import AnalysisException
 from pyspark.sql import DataFrame, SparkSession
@@ -20,6 +19,7 @@ from pyspark.sql import functions as F
 from nyc_taxi_lake.config import Settings
 from nyc_taxi_lake.ingest.raw_zone import partition_dir
 from nyc_taxi_lake.months import Month
+from nyc_taxi_lake.paths import LakePath
 from nyc_taxi_lake.quality.report import CheckResult
 from nyc_taxi_lake.quality.spec import (
     Check,
@@ -44,7 +44,7 @@ class MonthTables:
         self.month = month
         self._cache: dict[str, DataFrame] = {}
 
-    def _path(self, name: str) -> Path:
+    def _path(self, name: str) -> LakePath:
         s, taxi = self.settings, self.settings.taxi_type
         if name == "raw":
             return partition_dir(s.raw_root, taxi, self.month)

@@ -16,7 +16,7 @@ tagged when it completes. Checked items are done.
 - [x] **M4 · Data quality.** Declarative checks (row counts vs. source, null rates,
       ranges, referential integrity, freshness) producing a JSON report per run, with a
       pluggable alert sink (log locally, SNS in AWS).
-- [ ] **M5 · AWS lake (Terraform).** S3 buckets for raw/clean/warehouse zones with
+- [x] **M5 · AWS lake (Terraform).** S3 buckets for raw/clean/warehouse zones with
       lifecycle rules, Glue Data Catalog, crawlers and Glue job definitions wrapping the
       M2/M3 jobs, Athena workgroup, IAM least-privilege roles.
 - [ ] **M6 · Warehouse load (Terraform).** Redshift Serverless namespace/workgroup,

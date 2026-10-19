@@ -27,3 +27,11 @@ lake/
 .DS_Store
 .idea/
 .vscode/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+# Reusable modules don't pin providers; only root configurations commit a lock file.
+infra/modules/**/.terraform.lock.hcl

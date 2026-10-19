@@ -1,0 +1,6 @@
+# terraform init -backend-config=backend.hcl
+bucket         = "my-terraform-state-bucket"
+key            = "nyc-taxi-lake/dev.tfstate"
+region         = "us-east-1"
+dynamodb_table = "terraform-locks"
+encrypt        = true

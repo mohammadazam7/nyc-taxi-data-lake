@@ -5,8 +5,9 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass, field
 from enum import StrEnum
-from pathlib import Path
 from typing import Any
+
+from nyc_taxi_lake.paths import LakePath
 
 
 class Status(StrEnum):
@@ -65,7 +66,7 @@ class QualityReport:
             "results": [{**asdict(r), "status": r.status.value} for r in self.results],
         }
 
-    def write(self, directory: Path) -> Path:
+    def write(self, directory: LakePath) -> LakePath:
         directory.mkdir(parents=True, exist_ok=True)
         path = directory / f"{self.month}.json"
         path.write_text(json.dumps(self.to_dict(), indent=2) + "\n")

@@ -18,7 +18,6 @@ import json
 import logging
 from dataclasses import asdict, dataclass
 from datetime import date
-from pathlib import Path
 
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
@@ -29,6 +28,7 @@ from nyc_taxi_lake.model.dimensions import dim_date, dim_payment_type, dim_rate_
 from nyc_taxi_lake.model.facts import fact_trips
 from nyc_taxi_lake.model.zones import dim_zone
 from nyc_taxi_lake.months import Month
+from nyc_taxi_lake.paths import LakePath
 
 log = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ DATE_DIM_FIRST = date(2009, 1, 1)
 DATE_DIM_LAST = date(2035, 12, 31)
 
 
-def zone_lookup_path(settings: Settings) -> Path:
+def zone_lookup_path(settings: Settings) -> LakePath:
     """Where the TLC zone lookup lives in the raw zone."""
     return settings.raw_root / "reference" / LOOKUP_FILE
 
@@ -50,7 +50,7 @@ class ModelSummary:
     dim_rows: dict[str, int]
 
 
-def build_dimensions(spark: SparkSession, lookup_csv: Path) -> dict[str, DataFrame]:
+def build_dimensions(spark: SparkSession, lookup_csv: LakePath) -> dict[str, DataFrame]:
     return {
         "dim_date": dim_date(spark, DATE_DIM_FIRST, DATE_DIM_LAST),
         "dim_zone": dim_zone(spark, lookup_csv),
@@ -74,7 +74,7 @@ def read_clean_month(spark: SparkSession, settings: Settings, month: Month) -> D
 
 
 def model_month(
-    spark: SparkSession, settings: Settings, month: Month, lookup_csv: Path | None = None
+    spark: SparkSession, settings: Settings, month: Month, lookup_csv: LakePath | None = None
 ) -> ModelSummary:
     lookup = lookup_csv or zone_lookup_path(settings)
     if not lookup.exists():
