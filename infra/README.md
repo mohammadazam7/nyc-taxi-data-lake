@@ -37,8 +37,8 @@ aws s3 cp dist/nyc_taxi_lake-0.1.0-py3-none-any.whl \
 ## Running a month
 
 Ingest still runs outside AWS until milestone 7, so land the raw data locally and copy
-it up. The sync includes `raw/reference/taxi_zone_lookup.csv`, which the model stage
-needs:
+it up. The model stage also needs TLC's `taxi_zone_lookup.csv`; put it in
+`lake/raw/reference/` first and the sync copies it with the trips:
 
 ```bash
 LAKE=$(terraform -chdir=infra/envs/dev output -raw lake_root)
