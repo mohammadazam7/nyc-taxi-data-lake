@@ -37,6 +37,10 @@ class Settings:
     def warehouse_root(self) -> Path:
         return self.lake_root / "warehouse"
 
+    @property
+    def quality_root(self) -> Path:
+        return self.lake_root / "quality"
+
     @classmethod
     def from_env(cls) -> Settings:
         return cls(

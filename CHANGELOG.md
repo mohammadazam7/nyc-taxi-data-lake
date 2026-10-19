@@ -6,6 +6,11 @@ All notable changes are recorded here. The format follows
 ## [Unreleased]
 
 ### Added
+- Milestone 4: data-quality checks (`nyc-lake quality`). A strict TOML suite with
+  row-count reconciliation, quarantine rate, null rate, value range, referential
+  integrity and month-completeness checks, each at `error` or `warn` severity. One JSON
+  report per month under `quality/`, breaches sent to a log or SNS alert sink, non-zero
+  exit on failure. The CI smoke run now checks quality after modelling.
 - Milestone 3: star schema (`nyc-lake model`). Builds `fact_trips` (one row per clean
   trip, partitioned by `pickup_date`) and `dim_date`, `dim_zone`, `dim_vendor`,
   `dim_rate_code` and `dim_payment_type` in the warehouse zone. Hash surrogate keys so
