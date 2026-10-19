@@ -174,7 +174,9 @@ TLC months will be revisited once the pipeline has run on them (milestone 9).
 an Athena workgroup, and the clean, model and quality stages as Glue 5.0 jobs.
 `infra/envs/dev` wires them into one environment. The Glue jobs install this package as
 a wheel and call the same `nyc-lake` commands used locally, through
-`src/nyc_taxi_lake/glue_entry.py`, so there is no separate Glue-only code path.
+`src/nyc_taxi_lake/glue_entry.py`, so there is no separate Glue-only code path. Setting
+`NYC_LAKE_ROOT=s3://<bucket>` points the clean, model and quality stages at S3; ingest
+still writes to a local lake that is synced up until milestone 7.
 
 Each stage runs under its own IAM role that can read only its input zones and write
 only its output zones. See [infra/README.md](infra/README.md) for deployment steps.
@@ -242,6 +244,7 @@ src/nyc_taxi_lake/
     alerts.py       log and SNS alert sinks
     job.py          per-month runner
   spark.py          SparkSession factory (UTC, dynamic partition overwrite)
+  paths.py          lake locations: local folders or S3 prefixes
   glue_entry.py     runs a stage inside an AWS Glue job
 glue/               Glue entry script
 infra/
