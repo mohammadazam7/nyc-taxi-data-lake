@@ -93,3 +93,12 @@ run "rejects_invalid_prefix" {
 
   expect_failures = [var.name_prefix]
 }
+
+run "bucket_names_are_known_at_plan" {
+  command = plan
+
+  assert {
+    condition     = output.lake_root == "s3://nyc-lake-test-lake" && output.artifacts_bucket == "nyc-lake-test-artifacts"
+    error_message = "bucket outputs must be known before apply"
+  }
+}
