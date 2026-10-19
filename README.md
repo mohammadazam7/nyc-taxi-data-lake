@@ -13,8 +13,8 @@ Redshift Serverless, and alerts when data quality slips.
 The same code runs on a laptop against local folders and in AWS against S3, so every
 stage is testable without a cloud account.
 
-> **Status:** under active development. Milestones 1–4 (ingest, clean, model, data quality) are
-> complete; see the [roadmap](docs/ROADMAP.md) for what's next.
+> **Status:** under active development. Milestones 1–5 (ingest, clean, model, data quality, AWS lake in
+> Terraform) are complete; see the [roadmap](docs/ROADMAP.md) for what's next.
 
 ## Architecture
 
@@ -37,7 +37,8 @@ flowchart LR
 | Clean | Deduplicate, validate, quarantine bad rows | ✅ |
 | Model | `fact_trips` + date, zone, payment, vendor, rate-code dimensions | ✅ |
 | Quality | Row-count, null, range, referential and freshness checks | ✅ |
-| AWS | Terraform for S3, Glue, Athena, Redshift Serverless, CloudWatch, SNS | 🔜 |
+| AWS lake | Terraform for S3, Glue catalog, crawlers and jobs, Athena, per-stage IAM roles | ✅ |
+| Warehouse | Terraform for Redshift Serverless, `COPY` loader, CloudWatch alarms, SNS | 🔜 |
 
 ## Quick start
 
@@ -167,6 +168,19 @@ attributes for subscription filters. The SNS sink needs the `[aws]` extra.
 On the synthetic sample every check in the default suite passes. Thresholds for real
 TLC months will be revisited once the pipeline has run on them (milestone 9).
 
+## Running in AWS
+
+`infra/` holds Terraform modules for the lake's buckets, the Glue catalog and crawlers,
+an Athena workgroup, and the clean, model and quality stages as Glue 5.0 jobs.
+`infra/envs/dev` wires them into one environment. The Glue jobs install this package as
+a wheel and call the same `nyc-lake` commands used locally, through
+`src/nyc_taxi_lake/glue_entry.py`, so there is no separate Glue-only code path.
+
+Each stage runs under its own IAM role that can read only its input zones and write
+only its output zones. See [infra/README.md](infra/README.md) for deployment steps.
+The modules are checked with `terraform validate` and plan-only tests against a mocked
+provider; they have not yet been applied to a real account.
+
 ## Design notes
 
 - **Idempotent ingest.** Each partition has a manifest with a content hash. Re-running a
@@ -228,6 +242,11 @@ src/nyc_taxi_lake/
     alerts.py       log and SNS alert sinks
     job.py          per-month runner
   spark.py          SparkSession factory (UTC, dynamic partition overwrite)
+  glue_entry.py     runs a stage inside an AWS Glue job
+glue/               Glue entry script
+infra/
+  modules/          storage, catalog and jobs Terraform modules
+  envs/dev/         root configuration wiring them together
 sql/redshift/       DDL for the warehouse tables
 tests/
 docs/ROADMAP.md

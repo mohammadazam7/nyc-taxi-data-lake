@@ -6,6 +6,13 @@ All notable changes are recorded here. The format follows
 ## [Unreleased]
 
 ### Added
+- Milestone 5: the lake in Terraform. `storage` module for the lake, artifacts and
+  Athena-results buckets with encryption, TLS-only policies and lifecycle rules;
+  `catalog` module with a Glue database per zone, crawlers and an Athena workgroup;
+  `jobs` module running clean, model and quality as Glue 5.0 jobs through a shared
+  entry script, each under an IAM role scoped to its input and output zones;
+  `envs/dev` root configuration. Plan-only `terraform test` suites with a mocked
+  provider, run in CI with `fmt` and `validate`.
 - Milestone 4: data-quality checks (`nyc-lake quality`). A strict TOML suite with
   row-count reconciliation, quarantine rate, null rate, value range, referential
   integrity and month-completeness checks, each at `error` or `warn` severity. One JSON
