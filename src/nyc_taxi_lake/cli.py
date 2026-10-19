@@ -16,20 +16,23 @@ from nyc_taxi_lake.ingest.raw_zone import IngestResult, write_partition
 from nyc_taxi_lake.ingest.sample import generate_month
 from nyc_taxi_lake.ingest.tlc import download_month, trip_file_url
 from nyc_taxi_lake.months import month_range
+from nyc_taxi_lake.paths import require_local
 
 
 def _ingest(args: argparse.Namespace, settings: Settings) -> list[IngestResult]:
+    # Ingest writes with pyarrow and local renames; in AWS the raw zone is synced up.
+    lake = require_local(settings.lake_root, "ingest")
     results = []
     for month in month_range(args.start, args.end or args.start):
         if args.sample:
             table = generate_month(month, rows=args.sample_rows)
             source = f"synthetic://{settings.taxi_type}/{month.key}?rows={args.sample_rows}"
         else:
-            path = download_month(settings, month, settings.lake_root / "_downloads")
+            path = download_month(settings, month, lake / "_downloads")
             table = pq.read_table(path)
             source = trip_file_url(settings, month)
         results.append(
-            write_partition(table, settings.raw_root, settings.taxi_type, month, source, args.force)
+            write_partition(table, lake / "raw", settings.taxi_type, month, source, args.force)
         )
     return results
 
@@ -60,7 +63,7 @@ def _model(args: argparse.Namespace, settings: Settings) -> int:
 
     lookup = zone_lookup_path(settings)
     if args.sample_zones and not lookup.exists():
-        write_sample_lookup(lookup)
+        write_sample_lookup(require_local(lookup, "--sample-zones"))
         print(f"wrote placeholder zone lookup to {lookup}")
 
     spark = get_spark("nyc-lake-model", master=args.master)

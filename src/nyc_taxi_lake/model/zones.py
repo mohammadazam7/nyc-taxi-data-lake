@@ -9,16 +9,15 @@ access.
 
 from __future__ import annotations
 
-from pathlib import Path
-
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
 
 from nyc_taxi_lake.model.dimensions import surrogate_key
 from nyc_taxi_lake.model.reference import UNKNOWN_CODE, UNKNOWN_NAME
+from nyc_taxi_lake.paths import LakePath
 
 
-def dim_zone(spark: SparkSession, lookup_csv: Path) -> DataFrame:
+def dim_zone(spark: SparkSession, lookup_csv: LakePath) -> DataFrame:
     """Zones from the lookup file plus the unknown member, one row per ``zone_id``."""
     lookup = spark.read.csv(
         str(lookup_csv),
