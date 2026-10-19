@@ -169,3 +169,12 @@ run "rejects_too_few_workers" {
 
   expect_failures = [var.workers]
 }
+
+run "outputs_name_every_stage" {
+  command = plan
+
+  assert {
+    condition     = output.job_names == { clean = "nyc-lake-test-clean", model = "nyc-lake-test-model", quality = "nyc-lake-test-quality" }
+    error_message = "job_names must map each stage to its job"
+  }
+}
