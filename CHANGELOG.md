@@ -11,7 +11,8 @@ All notable changes are recorded here. The format follows
   `catalog` module with a Glue database per zone, crawlers and an Athena workgroup;
   `jobs` module running clean, model and quality as Glue 5.0 jobs through a shared
   entry script, each under an IAM role scoped to its input and output zones;
-  `envs/dev` root configuration. Plan-only `terraform test` suites with a mocked
+  `envs/dev` root configuration. `NYC_LAKE_ROOT` accepts an `s3://` URI for the
+  Spark stages. Plan-only `terraform test` suites with a mocked
   provider, run in CI with `fmt` and `validate`.
 - Milestone 4: data-quality checks (`nyc-lake quality`). A strict TOML suite with
   row-count reconciliation, quarantine rate, null rate, value range, referential
