@@ -16,7 +16,6 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import asdict, dataclass, field
-from pathlib import Path
 
 from pyspark.sql import Column, DataFrame, SparkSession
 from pyspark.sql import functions as F
@@ -25,6 +24,7 @@ from nyc_taxi_lake.clean.rules import tag_rejects
 from nyc_taxi_lake.config import Settings
 from nyc_taxi_lake.ingest.raw_zone import partition_dir
 from nyc_taxi_lake.months import Month
+from nyc_taxi_lake.paths import LakePath
 
 log = logging.getLogger(__name__)
 
@@ -127,6 +127,6 @@ def clean_month(spark: SparkSession, settings: Settings, month: Month) -> CleanS
     return summary
 
 
-def _write_summary(directory: Path, summary: CleanSummary) -> None:
+def _write_summary(directory: LakePath, summary: CleanSummary) -> None:
     directory.mkdir(parents=True, exist_ok=True)
     (directory / f"{summary.month}.json").write_text(json.dumps(asdict(summary), indent=2))

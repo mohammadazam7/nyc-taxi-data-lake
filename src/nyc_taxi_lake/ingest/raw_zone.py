@@ -17,11 +17,13 @@ import logging
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import TypeVar
 
 import pyarrow as pa
 import pyarrow.parquet as pq
 
 from nyc_taxi_lake.months import Month
+from nyc_taxi_lake.paths import LakePath
 from nyc_taxi_lake.schema import conform
 
 log = logging.getLogger(__name__)
@@ -46,7 +48,10 @@ class IngestResult:
     skipped: bool
 
 
-def partition_dir(raw_root: Path, taxi_type: str, month: Month) -> Path:
+P = TypeVar("P", bound=LakePath)
+
+
+def partition_dir(raw_root: P, taxi_type: str, month: Month) -> P:
     return raw_root / taxi_type / month.partition
 
 
