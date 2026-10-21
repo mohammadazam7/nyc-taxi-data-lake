@@ -20,10 +20,16 @@ variable "package_version" {
   type        = string
 }
 
-variable "alert_topic_arn" {
-  description = "SNS topic for data-quality breaches. Null keeps alerts in the Glue job log until the topic is added in milestone 6."
-  type        = string
-  default     = null
+variable "alert_emails" {
+  description = "Addresses that receive job failures and data-quality breaches. Each must confirm the subscription."
+  type        = set(string)
+  default     = []
+}
+
+variable "max_rpu_hours_per_day" {
+  description = "Daily Redshift Serverless compute limit; queries past it are refused. Null removes the limit."
+  type        = number
+  default     = 4
 }
 
 variable "force_destroy" {

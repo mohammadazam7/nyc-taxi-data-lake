@@ -6,6 +6,9 @@ mock_provider "aws" {
   mock_resource "aws_iam_role" {
     defaults = { arn = "arn:aws:iam::123456789012:role/nyc-lake-test-role" }
   }
+  mock_resource "aws_sns_topic" {
+    defaults = { arn = "arn:aws:sns:us-east-1:123456789012:nyc-lake-test-alerts" }
+  }
   mock_data "aws_caller_identity" {
     defaults = { account_id = "123456789012" }
   }
@@ -58,5 +61,28 @@ run "catalog_has_a_database_per_zone" {
   assert {
     condition     = output.glue_databases == { raw = "nyc_lake_test_raw", clean = "nyc_lake_test_clean", warehouse = "nyc_lake_test_warehouse" }
     error_message = "expected raw, clean and warehouse databases named after the prefix"
+  }
+}
+
+run "every_job_is_monitored" {
+  command = plan
+
+  assert {
+    condition     = module.monitoring.glue_failure_rule == "nyc-lake-test-glue-job-failed"
+    error_message = "the environment must route Glue job failures to the alert topic"
+  }
+
+  assert {
+    condition     = length(module.monitoring.alarm_names) == 3
+    error_message = "every Glue job must have a failed-task alarm"
+  }
+}
+
+run "warehouse_is_named_after_the_prefix" {
+  command = plan
+
+  assert {
+    condition     = output.redshift_workgroup == "nyc-lake-test-warehouse" && output.redshift_database == "taxi"
+    error_message = "the loader's workgroup and database must come from the warehouse module"
   }
 }
