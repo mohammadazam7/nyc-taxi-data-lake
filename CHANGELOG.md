@@ -6,6 +6,13 @@ All notable changes are recorded here. The format follows
 ## [Unreleased]
 
 ### Added
+- Milestone 6: warehouse load and alerting. `warehouse` Terraform module with a Redshift
+  Serverless namespace and workgroup, a daily RPU-hour usage limit and a `COPY` role
+  scoped to the warehouse zone. `nyc-lake load` runs each month's dimension reloads and
+  fact `DELETE`/`COPY` as one Redshift Data API transaction, with `--dry-run` to print
+  the SQL. `monitoring` module with the alert SNS topic, an EventBridge rule for failed
+  Glue runs and a failed-task CloudWatch alarm per job; the dev environment wires the
+  quality job's alerts to it.
 - Milestone 5: the lake in Terraform. `storage` module for the lake, artifacts and
   Athena-results buckets with encryption, TLS-only policies and lifecycle rules;
   `catalog` module with a Glue database per zone, crawlers and an Athena workgroup;
@@ -33,3 +40,7 @@ All notable changes are recorded here. The format follows
 - Milestone 1: package scaffold, `nyc-lake ingest` CLI, TLC downloader with retries and
   atomic writes, schema conformance across TLC file versions, idempotent raw-zone writer
   with per-partition manifests, synthetic data generator, CI on Python 3.11-3.13.
+
+### Changed
+- `envs/dev` replaces the `alert_topic_arn` variable with `alert_emails`; the topic is
+  now created by the `monitoring` module.

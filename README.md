@@ -13,8 +13,8 @@ Redshift Serverless, and alerts when data quality slips.
 The same code runs on a laptop against local folders and in AWS against S3, so every
 stage is testable without a cloud account.
 
-> **Status:** under active development. Milestones 1-5 (ingest, clean, model, data quality, AWS lake in
-> Terraform) are complete; see the [roadmap](docs/ROADMAP.md) for what's next.
+> **Status:** under active development. Milestones 1-6 (ingest, clean, model, data quality, AWS lake and
+> warehouse load in Terraform) are complete; see the [roadmap](docs/ROADMAP.md) for what's next.
 
 ## Architecture
 
@@ -38,7 +38,7 @@ flowchart LR
 | Model | `fact_trips` + date, zone, payment, vendor, rate-code dimensions | Done |
 | Quality | Row-count, null, range, referential and freshness checks | Done |
 | AWS lake | Terraform for S3, Glue catalog, crawlers and jobs, Athena, per-stage IAM roles | Done |
-| Warehouse | Terraform for Redshift Serverless, `COPY` loader, CloudWatch alarms, SNS | Next |
+| Warehouse | Terraform for Redshift Serverless, `COPY` loader, CloudWatch alarms, SNS | Done |
 
 ## Quick start
 
@@ -183,6 +183,33 @@ only its output zones. See [infra/README.md](infra/README.md) for deployment ste
 The modules are checked with `terraform validate` and plan-only tests against a mocked
 provider; they have not yet been applied to a real account.
 
+### Loading the warehouse
+
+`nyc-lake load` copies modelled months from the warehouse zone into Redshift Serverless
+through the Redshift Data API, so it needs IAM credentials but no driver, open port or
+database password. Each month is one transaction: the five SCD-1 dimensions are emptied
+and copied in full, and the month's facts are deleted by `pickup_date_key` and copied
+from that month's partitions. Loading a month twice leaves the same rows, and a failed
+`COPY` rolls the whole month back.
+
+```bash
+export NYC_LAKE_ROOT=s3://<lake bucket>
+export NYC_LAKE_REDSHIFT_WORKGROUP=$(terraform -chdir=infra/envs/dev output -raw redshift_workgroup)
+nyc-lake load 2024-01 --dry-run   # print the SQL; needs no credentials
+nyc-lake load 2024-01 2024-03
+```
+
+The tables must exist first: run [`sql/redshift/star_schema.sql`](sql/redshift/star_schema.sql)
+once in the query editor.
+
+### Alerting
+
+The `monitoring` module creates one SNS topic for every alert. An EventBridge rule
+forwards Glue runs that end `FAILED`, `TIMEOUT` or `ERROR`; a CloudWatch alarm per job
+fires on failed Spark tasks, which retries can hide from the run state; and the quality
+job publishes breach summaries to the same topic. Addresses in `alert_emails` are
+subscribed by email.
+
 ## Design notes
 
 - **Idempotent ingest.** Each partition has a manifest with a content hash. Re-running a
@@ -243,12 +270,15 @@ src/nyc_taxi_lake/
     report.py       results and the JSON report
     alerts.py       log and SNS alert sinks
     job.py          per-month runner
+  load/
+    statements.py   per-month DELETE and COPY statements
+    redshift.py     Redshift Data API runner
   spark.py          SparkSession factory (UTC, dynamic partition overwrite)
   paths.py          lake locations: local folders or S3 prefixes
   glue_entry.py     runs a stage inside an AWS Glue job
 glue/               Glue entry script
 infra/
-  modules/          storage, catalog and jobs Terraform modules
+  modules/          storage, catalog, jobs, warehouse and monitoring modules
   envs/dev/         root configuration wiring them together
 sql/redshift/       DDL for the warehouse tables
 tests/
