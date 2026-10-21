@@ -13,7 +13,7 @@ Redshift Serverless, and alerts when data quality slips.
 The same code runs on a laptop against local folders and in AWS against S3, so every
 stage is testable without a cloud account.
 
-> **Status:** under active development. Milestones 1–5 (ingest, clean, model, data quality, AWS lake in
+> **Status:** under active development. Milestones 1-5 (ingest, clean, model, data quality, AWS lake in
 > Terraform) are complete; see the [roadmap](docs/ROADMAP.md) for what's next.
 
 ## Architecture
@@ -33,12 +33,12 @@ flowchart LR
 
 | Stage | What it does | Status |
 |---|---|---|
-| Ingest | Download month, conform schema drift, land in raw zone with a manifest | ✅ |
-| Clean | Deduplicate, validate, quarantine bad rows | ✅ |
-| Model | `fact_trips` + date, zone, payment, vendor, rate-code dimensions | ✅ |
-| Quality | Row-count, null, range, referential and freshness checks | ✅ |
-| AWS lake | Terraform for S3, Glue catalog, crawlers and jobs, Athena, per-stage IAM roles | ✅ |
-| Warehouse | Terraform for Redshift Serverless, `COPY` loader, CloudWatch alarms, SNS | 🔜 |
+| Ingest | Download month, conform schema drift, land in raw zone with a manifest | Done |
+| Clean | Deduplicate, validate, quarantine bad rows | Done |
+| Model | `fact_trips` + date, zone, payment, vendor, rate-code dimensions | Done |
+| Quality | Row-count, null, range, referential and freshness checks | Done |
+| AWS lake | Terraform for S3, Glue catalog, crawlers and jobs, Athena, per-stage IAM roles | Done |
+| Warehouse | Terraform for Redshift Serverless, `COPY` loader, CloudWatch alarms, SNS | Next |
 
 ## Quick start
 
@@ -48,7 +48,7 @@ cd nyc-taxi-data-lake
 python -m venv .venv && source .venv/bin/activate
 make install
 
-# Real data from TLC (Jan–Mar 2024)
+# Real data from TLC (Jan to Mar 2024)
 nyc-lake ingest 2024-01 2024-03
 
 # Or fully offline with synthetic data that has realistic defects
@@ -96,7 +96,7 @@ data contract, since quality checks and dashboards group by them.
 | `NEGATIVE_AMOUNT` | fare or total amount is negative |
 | `NEGATIVE_DISTANCE` | trip distance is negative |
 | `BAD_PASSENGER_COUNT` | more than 9 passengers |
-| `UNKNOWN_ZONE` | pickup or dropoff zone missing or outside 1–265 |
+| `UNKNOWN_ZONE` | pickup or dropoff zone missing or outside 1-265 |
 | `DUPLICATE` | an identical row was already kept |
 
 Zones 264 and 265 ("unknown", "outside NYC") are valid TLC IDs and are kept.
@@ -208,7 +208,7 @@ provider; they have not yet been applied to a real account.
 make check   # ruff lint + format check, mypy --strict, pytest
 ```
 
-CI runs the same checks on Python 3.11–3.13, the Spark tests on Java 17, and an
+CI runs the same checks on Python 3.11-3.13, the Spark tests on Java 17, and an
 end-to-end smoke run that ingests, cleans, models and quality-checks three synthetic
 months. TLC's
 download site is not reachable from CI, so all automated runs use the synthetic
