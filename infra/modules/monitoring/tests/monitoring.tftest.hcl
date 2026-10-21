@@ -24,7 +24,7 @@ run "failed_runs_of_every_job_reach_the_topic" {
   command = plan
 
   assert {
-    condition     = jsondecode(aws_cloudwatch_event_rule.glue_job_failed.event_pattern).detail.jobName == var.glue_job_names
+    condition     = toset(jsondecode(aws_cloudwatch_event_rule.glue_job_failed.event_pattern).detail.jobName) == toset(var.glue_job_names)
     error_message = "the rule must match every pipeline job"
   }
 
