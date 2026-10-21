@@ -30,3 +30,16 @@ output "glue_jobs" {
   description = "Glue job name by stage."
   value       = module.jobs.job_names
 }
+
+output "redshift_workgroup" {
+  description = "Set NYC_LAKE_REDSHIFT_WORKGROUP to this to run nyc-lake load."
+  value       = module.warehouse.workgroup_name
+}
+
+output "redshift_database" {
+  value = module.warehouse.database_name
+}
+
+output "alert_topic_arn" {
+  value = module.monitoring.alert_topic_arn
+}
