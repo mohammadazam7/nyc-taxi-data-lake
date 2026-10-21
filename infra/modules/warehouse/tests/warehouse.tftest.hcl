@@ -1,12 +1,10 @@
-# Plan-only tests with a mocked provider: they need no AWS credentials.
-#
-# The copy role's ARN is mocked during plan (override_during, Terraform 1.9+) so the
-# namespace's default role can be compared with it; otherwise both are unknown.
+# Tests with a mocked provider: they need no AWS credentials. Most runs only plan; the
+# one that compares role ARNs applies against the mock, because computed ARNs are
+# unknown until apply.
 
 mock_provider "aws" {
   mock_resource "aws_iam_role" {
-    override_during = plan
-    defaults        = { arn = "arn:aws:iam::123456789012:role/nyc-lake-test-redshift-copy" }
+    defaults = { arn = "arn:aws:iam::123456789012:role/nyc-lake-test-redshift-copy" }
   }
   mock_resource "aws_redshiftserverless_workgroup" {
     defaults = { arn = "arn:aws:redshift-serverless:us-east-1:123456789012:workgroup/abc" }
@@ -83,7 +81,7 @@ run "limit_can_be_turned_off" {
 }
 
 run "copy_role_reads_only_the_warehouse_zone" {
-  command = plan
+  command = apply
 
   variables {
     taxi_types = ["yellow", "green"]
