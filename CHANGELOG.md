@@ -32,4 +32,4 @@ All notable changes are recorded here. The format follows
   under `clean/_runs/`. Spark tests run in their own CI job on Java 17.
 - Milestone 1: package scaffold, `nyc-lake ingest` CLI, TLC downloader with retries and
   atomic writes, schema conformance across TLC file versions, idempotent raw-zone writer
-  with per-partition manifests, synthetic data generator, CI on Python 3.11–3.13.
+  with per-partition manifests, synthetic data generator, CI on Python 3.11-3.13.
