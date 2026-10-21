@@ -104,6 +104,30 @@ def _quality(args: argparse.Namespace, settings: Settings) -> int:
     return exit_code
 
 
+def _load(args: argparse.Namespace, settings: Settings) -> int:
+    from nyc_taxi_lake.load.redshift import DataApiRunner
+    from nyc_taxi_lake.load.statements import month_load
+
+    warehouse = str(settings.warehouse_root / settings.taxi_type)
+    months = month_range(args.start, args.end or args.start)
+    if args.dry_run:
+        for month in months:
+            print(f"-- {month.key}")
+            for sql in month_load(warehouse, month, schema=args.schema, iam_role=args.iam_role):
+                print(f"{sql};")
+        return 0
+
+    if not args.workgroup:
+        print("nyc-lake load: --workgroup or $NYC_LAKE_REDSHIFT_WORKGROUP is required")
+        return 2
+    runner = DataApiRunner(args.workgroup, args.database)
+    for month in months:
+        statements = month_load(warehouse, month, schema=args.schema, iam_role=args.iam_role)
+        statement_id = runner.run(statements)
+        print(f"{month.key}  loaded  {len(statements)} statements  {statement_id}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="nyc-lake", description=__doc__)
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -163,6 +187,27 @@ def build_parser() -> argparse.ArgumentParser:
         help="exit non-zero on failed error checks only (default), or on warnings too",
     )
     quality.add_argument("--master", default="local[*]", help="Spark master URL")
+
+    load = sub.add_parser("load", help="COPY modelled months into Redshift Serverless")
+    load.add_argument("start", help="first month, YYYY-MM")
+    load.add_argument("end", nargs="?", help="last month, YYYY-MM (default: start)")
+    load.add_argument(
+        "--workgroup",
+        default=os.environ.get("NYC_LAKE_REDSHIFT_WORKGROUP"),
+        help="Redshift Serverless workgroup (default: $NYC_LAKE_REDSHIFT_WORKGROUP)",
+    )
+    load.add_argument(
+        "--database",
+        default=os.environ.get("NYC_LAKE_REDSHIFT_DATABASE", "taxi"),
+        help="database in the namespace (default: taxi, or $NYC_LAKE_REDSHIFT_DATABASE)",
+    )
+    load.add_argument("--schema", default="taxi", help="schema holding the star (default: taxi)")
+    load.add_argument(
+        "--iam-role",
+        default="default",
+        help="role ARN for COPY (default: the namespace's default role)",
+    )
+    load.add_argument("--dry-run", action="store_true", help="print the SQL instead of running it")
     return parser
 
 
@@ -184,6 +229,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _model(args, settings)
     if args.command == "quality":
         return _quality(args, settings)
+    if args.command == "load":
+        return _load(args, settings)
     return 2
 
 

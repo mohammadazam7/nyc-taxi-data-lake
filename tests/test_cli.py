@@ -59,3 +59,50 @@ def test_model_after_clean(
     assert "placeholder zone lookup" in out
     assert "fact rows" in out
     assert any((tmp_path / "warehouse" / "yellow" / "fact_trips").glob("pickup_date=2024-01-*"))
+
+
+def test_load_dry_run_prints_one_transaction_per_month(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv("NYC_LAKE_ROOT", "s3://lake")
+    assert main(["load", "2024-01", "2024-02", "--dry-run"]) == 0
+    out = capsys.readouterr().out
+    assert out.count("-- 2024-") == 2
+    assert (
+        "COPY taxi.fact_trips FROM 's3://lake/warehouse/yellow/fact_trips/pickup_date=2024-02-'"
+        in out
+    )
+    assert "pickup_date_key BETWEEN 20240201 AND 20240229" in out
+
+
+def test_load_refuses_a_local_lake(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setenv("NYC_LAKE_ROOT", str(tmp_path))
+    with pytest.raises(ValueError, match="COPY reads from S3"):
+        main(["load", "2024-01", "--dry-run"])
+
+
+def test_load_needs_a_workgroup(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv("NYC_LAKE_ROOT", "s3://lake")
+    monkeypatch.delenv("NYC_LAKE_REDSHIFT_WORKGROUP", raising=False)
+    assert main(["load", "2024-01"]) == 2
+    assert "--workgroup" in capsys.readouterr().out
+
+
+def test_load_runs_each_month_through_the_data_api(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from nyc_taxi_lake.load import redshift
+
+    submitted: list[tuple[str, str, int]] = []
+
+    def fake_run(self: redshift.DataApiRunner, statements: list[str]) -> str:
+        submitted.append((self.workgroup, self.database, len(statements)))
+        return f"stmt-{len(submitted)}"
+
+    monkeypatch.setattr(redshift.DataApiRunner, "run", fake_run)
+    monkeypatch.setenv("NYC_LAKE_ROOT", "s3://lake")
+    assert main(["load", "2024-01", "2024-02", "--workgroup", "wg"]) == 0
+    assert submitted == [("wg", "taxi", 12), ("wg", "taxi", 12)]
+    assert "stmt-2" in capsys.readouterr().out
