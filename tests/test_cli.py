@@ -106,3 +106,50 @@ def test_load_runs_each_month_through_the_data_api(
     assert main(["load", "2024-01", "2024-02", "--workgroup", "wg"]) == 0
     assert submitted == [("wg", "taxi", 12), ("wg", "taxi", 12)]
     assert "stmt-2" in capsys.readouterr().out
+
+
+def test_run_rejects_unknown_stages(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit):
+        build_parser().parse_args(["run", "2024-01", "--stages", "ingest,deploy"])
+    assert "unknown stage(s): deploy" in capsys.readouterr().err
+
+
+def test_run_ingest_stage_over_a_range(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv("NYC_LAKE_ROOT", str(tmp_path))
+    argv = ["run", "2024-01", "2024-02", "--stages", "ingest", "--sample", "--sample-rows", "300"]
+    assert main(argv) == 0
+    assert [line.split()[0] for line in capsys.readouterr().out.splitlines()] == [
+        "2024-01",
+        "2024-02",
+    ]
+
+
+def test_backfill_ingest_stage_one_month_at_a_time(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv("NYC_LAKE_ROOT", str(tmp_path))
+    argv = ["backfill", "2024-01", "2024-03", "--stages", "ingest", "--sample"]
+    assert main([*argv, "--sample-rows", "300"]) == 0
+    out = capsys.readouterr().out
+    assert out.count("landed") == 3
+    assert "backfill: 3 done, 0 skipped" in out
+
+
+@pytest.mark.spark
+def test_run_end_to_end_then_backfill_resumes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    pytest.importorskip("pyspark", reason="install the [spark] extra to run Spark tests")
+    monkeypatch.setenv("NYC_LAKE_ROOT", str(tmp_path))
+    common = ["--sample", "--sample-rows", "1000", "--sample-zones", "--master", "local[2]"]
+
+    assert main(["run", "2024-01", *common]) == 0
+    assert (tmp_path / "quality" / "yellow" / "2024-01.json").exists()
+    capsys.readouterr()
+
+    # 2024-01 passed in the run above, so the backfill only processes 2024-02.
+    assert main(["backfill", "2024-01", "2024-02", *common]) == 0
+    assert "backfill: 1 done, 1 skipped" in capsys.readouterr().out
+    assert (tmp_path / "quality" / "yellow" / "2024-02.json").exists()
