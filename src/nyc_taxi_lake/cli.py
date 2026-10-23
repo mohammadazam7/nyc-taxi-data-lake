@@ -17,6 +17,14 @@ from nyc_taxi_lake.ingest.sample import generate_month
 from nyc_taxi_lake.ingest.tlc import download_month, trip_file_url
 from nyc_taxi_lake.months import month_range
 from nyc_taxi_lake.paths import require_local
+from nyc_taxi_lake.pipeline import (
+    DEFAULT_STAGES,
+    STAGES,
+    RunOptions,
+    backfill,
+    parse_stages,
+    run_stages,
+)
 
 
 def _ingest(args: argparse.Namespace, settings: Settings) -> list[IngestResult]:
@@ -128,6 +136,68 @@ def _load(args: argparse.Namespace, settings: Settings) -> int:
     return 0
 
 
+def _run_options(args: argparse.Namespace) -> RunOptions:
+    return RunOptions(
+        master=args.master,
+        sample=args.sample,
+        sample_rows=args.sample_rows,
+        sample_zones=args.sample_zones,
+        load_dry_run=args.load_dry_run,
+    )
+
+
+def _run(args: argparse.Namespace) -> int:
+    months = month_range(args.start, args.end or args.start)
+    for step in run_stages(months, args.stages, _run_options(args), main):
+        if not step.ok:
+            print(f"nyc-lake run: {step.stage} failed for {step.start}..{step.end}")
+            return step.exit_code
+    return 0
+
+
+def _backfill(args: argparse.Namespace, settings: Settings) -> int:
+    result = backfill(
+        args.start,
+        args.end,
+        args.stages,
+        _run_options(args),
+        settings,
+        main,
+        force=args.force,
+    )
+    print(f"backfill: {len(result.done)} done, {len(result.skipped)} skipped (already passed)")
+    if result.failed is not None:
+        f = result.failed
+        print(f"backfill: {f.stage} failed for {f.start}; re-run the same command to resume")
+        return f.exit_code
+    return 0
+
+
+def _stages(value: str) -> tuple[str, ...]:
+    try:
+        return parse_stages(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(str(exc)) from exc
+
+
+def _add_run_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--stages",
+        type=_stages,
+        default=DEFAULT_STAGES,
+        help=f"comma-separated subset of {','.join(STAGES)} (default: {','.join(DEFAULT_STAGES)})",
+    )
+    parser.add_argument("--sample", action="store_true", help="ingest synthetic data")
+    parser.add_argument("--sample-rows", type=int, default=50_000)
+    parser.add_argument(
+        "--sample-zones", action="store_true", help="model with a placeholder zone lookup"
+    )
+    parser.add_argument(
+        "--load-dry-run", action="store_true", help="print the load SQL instead of running it"
+    )
+    parser.add_argument("--master", default="local[*]", help="Spark master URL")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="nyc-lake", description=__doc__)
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -208,6 +278,20 @@ def build_parser() -> argparse.ArgumentParser:
         help="role ARN for COPY (default: the namespace's default role)",
     )
     load.add_argument("--dry-run", action="store_true", help="print the SQL instead of running it")
+
+    run = sub.add_parser("run", help="run the stages in order, each over the whole month range")
+    run.add_argument("start", help="first month, YYYY-MM")
+    run.add_argument("end", nargs="?", help="last month, YYYY-MM (default: start)")
+    _add_run_arguments(run)
+
+    back = sub.add_parser(
+        "backfill",
+        help="run every stage one month at a time, skipping months that already passed",
+    )
+    back.add_argument("start", help="first month, YYYY-MM")
+    back.add_argument("end", help="last month, YYYY-MM")
+    back.add_argument("--force", action="store_true", help="re-run months that already passed")
+    _add_run_arguments(back)
     return parser
 
 
@@ -231,6 +315,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _quality(args, settings)
     if args.command == "load":
         return _load(args, settings)
+    if args.command == "run":
+        return _run(args)
+    if args.command == "backfill":
+        return _backfill(args, settings)
     return 2
 
 
