@@ -4,7 +4,6 @@
 ![Python](https://img.shields.io/badge/python-3.11%20|%203.12%20|%203.13-3776AB?logo=python&logoColor=white)
 ![PySpark](https://img.shields.io/badge/PySpark-E25A1C?logo=apachespark&logoColor=white)
 ![AWS](https://img.shields.io/badge/AWS-S3%20·%20Glue%20·%20Athena%20·%20Redshift-232F3E?logo=amazonwebservices&logoColor=white)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 A batch pipeline that lands the public [NYC TLC trip records](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page)
 in an S3 data lake, cleans them with PySpark on AWS Glue, models a star schema in
