@@ -16,7 +16,7 @@ from dataclasses import dataclass
 
 from nyc_taxi_lake import cli
 
-STAGES = ("clean", "model", "quality")
+STAGES = ("clean", "model", "quality", "load")
 
 
 @dataclass(frozen=True)
@@ -34,16 +34,36 @@ def _parser() -> argparse.ArgumentParser:
     p.add_argument("--taxi-type", default="yellow")
     p.add_argument("--alert-sink", choices=["log", "sns"], default="log")
     p.add_argument("--sns-topic-arn")
+    p.add_argument("--redshift-workgroup", help="workgroup the load stage copies into")
+    p.add_argument("--redshift-database", default="taxi")
     return p
 
 
 def parse(argv: Sequence[str]) -> GlueRun:
     """Translate Glue's job arguments into an environment and ``nyc-lake`` argv."""
-    known, _glue_own = _parser().parse_known_args(list(argv))
+    parser = _parser()
+    known, _glue_own = parser.parse_known_args(list(argv))
 
     env = {"NYC_LAKE_ROOT": known.lake_root, "NYC_LAKE_TAXI_TYPE": known.taxi_type}
+    months = [known.stage, known.start, known.end or known.start]
+    if known.stage == "load":
+        # The load only issues COPY statements through the Redshift Data API; it starts
+        # no Spark session, so it takes no --master.
+        if not known.redshift_workgroup:
+            parser.error("the load stage needs --redshift-workgroup")
+        return GlueRun(
+            env=env,
+            argv=[
+                *months,
+                "--workgroup",
+                known.redshift_workgroup,
+                "--database",
+                known.redshift_database,
+            ],
+        )
+
     # An empty master leaves the session to Glue's cluster instead of local[*].
-    args = [known.stage, known.start, known.end or known.start, "--master", ""]
+    args = [*months, "--master", ""]
     if known.stage == "quality":
         args += ["--alert-sink", known.alert_sink]
         if known.sns_topic_arn:

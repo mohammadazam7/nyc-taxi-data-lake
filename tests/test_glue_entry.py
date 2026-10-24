@@ -55,6 +55,28 @@ def test_required_arguments(missing: list[str]) -> None:
         parse([*GLUE_ARGV, *missing])
 
 
+def test_load_runs_the_loader_without_spark() -> None:
+    redshift = ["--redshift-workgroup", "nyc-lake-warehouse", "--redshift-database", "taxi"]
+    job = parse([*GLUE_ARGV, "--stage", "load", "--start", "2024-01", *redshift])
+
+    assert job.argv == [
+        "load", "2024-01", "2024-01", "--workgroup", "nyc-lake-warehouse", "--database", "taxi"
+    ]  # fmt: skip
+    assert "--master" not in job.argv
+
+
+def test_load_needs_a_workgroup() -> None:
+    with pytest.raises(SystemExit):
+        parse([*GLUE_ARGV, "--stage", "load", "--start", "2024-01"])
+
+
+def test_redshift_arguments_only_go_to_load() -> None:
+    redshift = ["--redshift-workgroup", "nyc-lake-warehouse"]
+    job = parse([*GLUE_ARGV, "--stage", "model", "--start", "2024-01", *redshift])
+
+    assert "--workgroup" not in job.argv
+
+
 def test_unknown_stage_is_rejected() -> None:
     with pytest.raises(SystemExit):
         parse([*GLUE_ARGV, "--stage", "ingest", "--start", "2024-01"])
