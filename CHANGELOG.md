@@ -6,6 +6,16 @@ All notable changes are recorded here. The format follows
 ## [Unreleased]
 
 ### Added
+- Milestone 7: orchestration. `nyc-lake run` chains the stages over a month range,
+  stage-major, and stops at the first failure; `nyc-lake backfill` runs month by month
+  and skips months whose quality report passed, so it resumes after a failure. A
+  development `Dockerfile` with PySpark and OpenJDK 17. The Glue entry point accepts
+  `--stage load`, and the `jobs` module creates a load job when given a Redshift
+  workgroup. New `orchestration` module: a Step Functions state machine that runs
+  clean, model, quality and load with `startJobRun.sync`, derives the default month
+  from the execution start time, reports failed executions to SNS, and is started
+  monthly by a disabled-by-default EventBridge Scheduler schedule. CI builds the image
+  and runs a synthetic month through it, and checks that a backfill resumes.
 - Milestone 6: warehouse load and alerting. `warehouse` Terraform module with a Redshift
   Serverless namespace and workgroup, a daily RPU-hour usage limit and a `COPY` role
   scoped to the warehouse zone. `nyc-lake load` runs each month's dimension reloads and
