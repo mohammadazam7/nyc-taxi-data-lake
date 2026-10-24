@@ -1,6 +1,7 @@
 # The dev environment: one lake bucket with its raw, clean, quarantine, warehouse and
 # quality zones, the Glue catalog and crawlers over it, an Athena workgroup, the clean,
 # model, quality and load stages as Glue jobs, Redshift Serverless for the warehouse,
+# a Step Functions state machine that runs those jobs in order on a monthly schedule,
 # and an SNS topic that job failures and data-quality breaches publish to.
 
 locals {
@@ -55,6 +56,16 @@ module "warehouse" {
   taxi_types            = var.taxi_types
   max_rpu_hours_per_day = var.max_rpu_hours_per_day
   tags                  = local.tags
+}
+
+module "orchestration" {
+  source = "../../modules/orchestration"
+
+  name_prefix      = var.name_prefix
+  job_names        = module.jobs.job_names
+  alert_topic_arn  = module.monitoring.alert_topic_arn
+  schedule_enabled = var.schedule_enabled
+  tags             = local.tags
 }
 
 module "monitoring" {

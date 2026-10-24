@@ -31,6 +31,11 @@ output "glue_jobs" {
   value       = module.jobs.job_names
 }
 
+output "state_machine_arn" {
+  description = "Start a pipeline run with aws stepfunctions start-execution."
+  value       = module.orchestration.state_machine_arn
+}
+
 output "redshift_workgroup" {
   description = "Set NYC_LAKE_REDSHIFT_WORKGROUP to this to run nyc-lake load."
   value       = module.warehouse.workgroup_name

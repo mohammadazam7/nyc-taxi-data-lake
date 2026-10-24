@@ -6,6 +6,12 @@ mock_provider "aws" {
   mock_resource "aws_iam_role" {
     defaults = { arn = "arn:aws:iam::123456789012:role/nyc-lake-test-role" }
   }
+  mock_resource "aws_sfn_state_machine" {
+    defaults = { arn = "arn:aws:states:us-east-1:123456789012:stateMachine:nyc-lake-test-pipeline" }
+  }
+  mock_resource "aws_cloudwatch_log_group" {
+    defaults = { arn = "arn:aws:logs:us-east-1:123456789012:log-group:/aws/vendedlogs/states/nyc-lake-test-pipeline" }
+  }
   mock_resource "aws_sns_topic" {
     defaults = { arn = "arn:aws:sns:us-east-1:123456789012:nyc-lake-test-alerts" }
   }
@@ -84,6 +90,20 @@ run "load_job_targets_the_warehouse" {
   assert {
     condition     = module.jobs.job_names.load == "nyc-lake-test-load"
     error_message = "the environment must create a load job"
+  }
+}
+
+run "state_machine_runs_every_job" {
+  command = plan
+
+  assert {
+    condition     = module.orchestration.stages == ["clean", "model", "quality", "load"]
+    error_message = "the state machine must run every stage, ending with the load"
+  }
+
+  assert {
+    condition     = module.orchestration.state_machine_name == "nyc-lake-test-pipeline"
+    error_message = "the state machine must be named after the prefix"
   }
 }
 
