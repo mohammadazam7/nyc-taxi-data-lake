@@ -28,6 +28,9 @@ locals {
   partition  = data.aws_partition.current.partition
   region     = data.aws_region.current.name
 
+  # Every way an execution can end other than SUCCEEDED.
+  failed_statuses = ["FAILED", "TIMED_OUT", "ABORTED"]
+
   stages = [for s in ["clean", "model", "quality", "load"] : s if contains(keys(var.job_names), s)]
 
   # JSONata: the month lag_months before the execution's start time, as YYYY-MM.
@@ -139,7 +142,7 @@ resource "aws_cloudwatch_event_rule" "execution_failed" {
     detail-type = ["Step Functions Execution Status Change"]
     detail = {
       stateMachineArn = [aws_sfn_state_machine.pipeline.arn]
-      status          = ["FAILED", "TIMED_OUT", "ABORTED"]
+      status          = local.failed_statuses
     }
   })
 }
