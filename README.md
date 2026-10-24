@@ -13,8 +13,8 @@ Redshift Serverless, and alerts when data quality slips.
 The same code runs on a laptop against local folders and in AWS against S3, so every
 stage is testable without a cloud account.
 
-> **Status:** under active development. Milestones 1-6 (ingest, clean, model, data quality, AWS lake and
-> warehouse load in Terraform) are complete; see the [roadmap](docs/ROADMAP.md) for what's next.
+> **Status:** under active development. Milestones 1-7 (ingest, clean, model, data quality, AWS lake,
+> warehouse load and orchestration) are complete; see the [roadmap](docs/ROADMAP.md) for what's next.
 
 ## Architecture
 
@@ -39,6 +39,7 @@ flowchart LR
 | Quality | Row-count, null, range, referential and freshness checks | Done |
 | AWS lake | Terraform for S3, Glue catalog, crawlers and jobs, Athena, per-stage IAM roles | Done |
 | Warehouse | Terraform for Redshift Serverless, `COPY` loader, CloudWatch alarms, SNS | Done |
+| Orchestration | `run` and `backfill` commands, Docker image, Step Functions state machine on a monthly schedule | Done |
 
 ## Quick start
 
@@ -176,7 +177,8 @@ an Athena workgroup, and the clean, model and quality stages as Glue 5.0 jobs.
 a wheel and call the same `nyc-lake` commands used locally, through
 `src/nyc_taxi_lake/glue_entry.py`, so there is no separate Glue-only code path. Setting
 `NYC_LAKE_ROOT=s3://<bucket>` points the clean, model and quality stages at S3; ingest
-still writes to a local lake that is synced up until milestone 7.
+writes to a local lake that is then synced to the raw zone (see
+[Orchestration](#orchestration)).
 
 Each stage runs under its own IAM role that can read only its input zones and write
 only its output zones. See [infra/README.md](infra/README.md) for deployment steps.
@@ -210,6 +212,49 @@ fires on failed Spark tasks, which retries can hide from the run state; and the 
 job publishes breach summaries to the same topic. Addresses in `alert_emails` are
 subscribed by email.
 
+## Orchestration
+
+Locally, `nyc-lake run` chains the stages over a month range and stops at the first one
+that exits non-zero. It is stage-major: every month is ingested, then every month is
+cleaned, and so on, so each Spark stage starts one session for the whole range.
+`nyc-lake backfill` is month-major and skips any month whose quality report already
+passed, so a backfill that stops part way resumes where it stopped when re-run with the
+same arguments. Both take `--stages` to run a subset, and `backfill --force` re-runs
+passed months.
+
+```bash
+nyc-lake run 2024-01 2024-03 --sample --sample-zones
+nyc-lake backfill 2023-01 2023-12 --stages ingest,clean,model,quality
+```
+
+The `Dockerfile` builds the same CLI with PySpark and OpenJDK 17, so the pipeline runs
+without Java or Spark on the host:
+
+```bash
+docker build -t nyc-lake .
+docker run --rm -v "$PWD/lake:/lake" nyc-lake run 2024-01 --sample --sample-zones
+```
+
+In AWS, the `orchestration` module defines a Step Functions state machine that runs the
+clean, model, quality and load Glue jobs in order. Each task uses the `startJobRun.sync`
+integration, so the execution waits for the run and fails with it; quality exits
+non-zero on an error-level finding, so a month that fails its checks is not loaded. An
+execution takes `{"start": "YYYY-MM", "end": "YYYY-MM"}`; with an empty input it
+processes the month two months before its start time, which is what the monthly
+EventBridge Scheduler run passes. Failed, timed-out and aborted executions publish to
+the alert topic.
+
+```bash
+aws stepfunctions start-execution \
+  --state-machine-arn "$(terraform -chdir=infra/envs/dev output -raw state_machine_arn)" \
+  --input '{"start":"2024-01","end":"2024-03"}'
+```
+
+Ingest is not a state machine stage, because it writes through the local filesystem.
+It runs in the Docker image and the raw zone is synced to S3 before an execution
+starts. Running ingest inside AWS, as an ECS task or a Glue job that writes to S3
+directly, is a known gap.
+
 ## Design notes
 
 - **Idempotent ingest.** Each partition has a manifest with a content hash. Re-running a
@@ -224,6 +269,12 @@ subscribed by email.
   one column and gives later stages a stable join key.
 - **Re-runnable clean job.** The clean zone uses dynamic partition overwrite, so cleaning
   a month again replaces only that month's `pickup_date` partitions.
+- **Fail-fast orchestration with a quality gate.** Every stage, locally and in Step
+  Functions, ends the run on a non-zero exit. The load comes after quality, so data
+  that breaches an error-level check never reaches Redshift.
+- **Scheduled runs compute their own month.** The schedule passes an empty input and the
+  state machine derives the month from the execution's start time with a JSONata
+  expression, so there is no scheduler state to keep in step with the data.
 - **Synthetic data with real defects.** The generator injects duplicates, negative fares,
   dropoffs before pickups, out-of-month trips and unknown zones in roughly the
   proportions seen in TLC data, so cleaning and quality stages are tested against the
@@ -235,9 +286,11 @@ subscribed by email.
 make check   # ruff lint + format check, mypy --strict, pytest
 ```
 
-CI runs the same checks on Python 3.11-3.13, the Spark tests on Java 17, and an
+CI runs the same checks on Python 3.11-3.13, the Spark tests on Java 17, an
 end-to-end smoke run that ingests, cleans, models and quality-checks three synthetic
-months. TLC's
+months and then checks that a backfill resumes, a Docker build that runs one synthetic
+month through the image, and `terraform fmt`, `validate` and `test` for every module.
+TLC's
 download site is not reachable from CI, so all automated runs use the synthetic
 generator and a placeholder zone lookup. Spark tests are
 marked `spark` and skip automatically when PySpark isn't installed.
@@ -276,11 +329,14 @@ src/nyc_taxi_lake/
   spark.py          SparkSession factory (UTC, dynamic partition overwrite)
   paths.py          lake locations: local folders or S3 prefixes
   glue_entry.py     runs a stage inside an AWS Glue job
+  pipeline.py       stage ordering for the run and backfill commands
 glue/               Glue entry script
 infra/
-  modules/          storage, catalog, jobs, warehouse and monitoring modules
+  modules/          storage, catalog, jobs, warehouse, monitoring and orchestration
+                    modules
   envs/dev/         root configuration wiring them together
 sql/redshift/       DDL for the warehouse tables
+Dockerfile          development image with PySpark and Java
 tests/
 docs/ROADMAP.md
 ```
