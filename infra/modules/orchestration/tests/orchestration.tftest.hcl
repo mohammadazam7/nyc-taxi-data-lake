@@ -162,11 +162,13 @@ run "schedule_can_be_enabled" {
   }
 }
 
+# The rule's pattern embeds the state machine's ARN, which is unknown at plan time, so
+# the statuses are checked through the local the pattern is built from.
 run "failed_executions_reach_the_topic" {
   command = plan
 
   assert {
-    condition     = toset(jsondecode(aws_cloudwatch_event_rule.execution_failed.event_pattern).detail.status) == toset(["FAILED", "TIMED_OUT", "ABORTED"])
+    condition     = toset(local.failed_statuses) == toset(["FAILED", "TIMED_OUT", "ABORTED"])
     error_message = "the rule must match every unsuccessful end state"
   }
 
