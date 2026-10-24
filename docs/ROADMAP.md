@@ -22,7 +22,7 @@ tagged when it completes. Checked items are done.
 - [x] **M6 · Warehouse load (Terraform).** Redshift Serverless namespace/workgroup,
       `COPY` loader from the warehouse zone, CloudWatch alarms and SNS topic for job
       failures and data-quality breaches.
-- [ ] **M7 · Orchestration.** Glue workflow (or Step Functions) chaining ingest, clean,
+- [x] **M7 · Orchestration.** Glue workflow (or Step Functions) chaining ingest, clean,
       model, quality and load, monthly schedule, backfill command, Docker dev image.
 - [ ] **M8 · Analytics.** SQL for trip volume, revenue and busiest zones; a small static
       dashboard generated from the warehouse; architecture docs and decision records.
