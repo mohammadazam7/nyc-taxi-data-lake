@@ -32,6 +32,12 @@ variable "max_rpu_hours_per_day" {
   default     = 4
 }
 
+variable "schedule_enabled" {
+  description = "Run the pipeline on the 5th of each month. Upload the wheel and ingest the raw month before turning it on."
+  type        = bool
+  default     = false
+}
+
 variable "force_destroy" {
   description = "Allow terraform destroy to empty the buckets. Leave false for anything holding data you want to keep."
   type        = bool
