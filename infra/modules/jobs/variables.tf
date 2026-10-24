@@ -47,7 +47,7 @@ variable "worker_type" {
 }
 
 variable "workers" {
-  description = "Workers per Spark job, by stage. One month of yellow taxi data is roughly 3 million rows."
+  description = "Workers per Spark job, by stage. One month of yellow taxi data is roughly 3 million rows. The load job, which only issues SQL, always gets Glue's minimum of 2."
   type        = map(number)
   default = {
     clean   = 4
@@ -71,6 +71,16 @@ variable "alert_topic_arn" {
   description = "SNS topic the quality job publishes breaches to. Null keeps alerts in the job log."
   type        = string
   default     = null
+}
+
+variable "load" {
+  description = "Redshift Serverless workgroup to load into (warehouse module outputs). Null creates no load job."
+  type = object({
+    workgroup_name = string
+    workgroup_arn  = string
+    database_name  = string
+  })
+  default = null
 }
 
 variable "tags" {

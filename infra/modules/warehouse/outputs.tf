@@ -7,6 +7,11 @@ output "workgroup_name" {
   value       = aws_redshiftserverless_workgroup.this.workgroup_name
 }
 
+output "workgroup_arn" {
+  description = "Scope for IAM policies that submit statements through the Data API."
+  value       = aws_redshiftserverless_workgroup.this.arn
+}
+
 output "database_name" {
   value = var.database_name
 }
