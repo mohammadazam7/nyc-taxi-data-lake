@@ -73,8 +73,17 @@ run "every_job_is_monitored" {
   }
 
   assert {
-    condition     = length(module.monitoring.alarm_names) == 3
+    condition     = length(module.monitoring.alarm_names) == 4
     error_message = "every Glue job must have a failed-task alarm"
+  }
+}
+
+run "load_job_targets_the_warehouse" {
+  command = plan
+
+  assert {
+    condition     = module.jobs.job_names.load == "nyc-lake-test-load"
+    error_message = "the environment must create a load job"
   }
 }
 

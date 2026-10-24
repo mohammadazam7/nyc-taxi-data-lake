@@ -1,7 +1,7 @@
 # The dev environment: one lake bucket with its raw, clean, quarantine, warehouse and
 # quality zones, the Glue catalog and crawlers over it, an Athena workgroup, the clean,
-# model and quality stages as Glue jobs, Redshift Serverless for the warehouse, and an
-# SNS topic that job failures and data-quality breaches publish to.
+# model, quality and load stages as Glue jobs, Redshift Serverless for the warehouse,
+# and an SNS topic that job failures and data-quality breaches publish to.
 
 locals {
   tags = {
@@ -39,6 +39,12 @@ module "jobs" {
   package_wheel_key = local.package_wheel_key
   taxi_types        = var.taxi_types
   alert_topic_arn   = module.monitoring.alert_topic_arn
+
+  load = {
+    workgroup_name = module.warehouse.workgroup_name
+    workgroup_arn  = module.warehouse.workgroup_arn
+    database_name  = module.warehouse.database_name
+  }
 }
 
 module "warehouse" {
