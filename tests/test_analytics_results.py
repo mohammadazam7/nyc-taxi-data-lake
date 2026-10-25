@@ -3,7 +3,7 @@ from decimal import Decimal
 
 import pytest
 
-from nyc_taxi_lake.analytics.results import QueryResult, to_scalar
+from nyc_taxi_lake.analytics.results import AnalyticsReport, QueryResult, to_scalar
 
 
 def test_driver_values_become_json_scalars() -> None:
@@ -33,3 +33,12 @@ def test_round_trips_through_json_shape() -> None:
     assert result.column("trips") == [10, 12]
     assert result.records()[0] == {"calendar_date": "2024-01-01", "trips": 10, "revenue": 201.5}
     assert QueryResult.from_dict(result.to_dict()) == result
+
+
+def test_report_round_trips_through_json() -> None:
+    result = QueryResult.from_records("payment_mix", ["payment_type_name", "trips"], [("Cash", 3)])
+    report = AnalyticsReport("yellow", "2024-01", "2024-02", (result,))
+    assert AnalyticsReport.from_json(report.to_json()) == report
+    assert report.result("payment_mix") == result
+    with pytest.raises(KeyError, match="daily_trips"):
+        report.result("daily_trips")

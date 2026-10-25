@@ -61,6 +61,31 @@ def test_model_after_clean(
     assert any((tmp_path / "warehouse" / "yellow" / "fact_trips").glob("pickup_date=2024-01-*"))
 
 
+@pytest.mark.spark
+def test_analytics_after_model_writes_one_report(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    pytest.importorskip("pyspark", reason="install the [spark] extra to run Spark tests")
+    from nyc_taxi_lake.analytics.queries import QUERY_NAMES
+    from nyc_taxi_lake.analytics.results import AnalyticsReport
+
+    monkeypatch.setenv("NYC_LAKE_ROOT", str(tmp_path))
+    main(["ingest", "2024-01", "--sample", "--sample-rows", "1000"])
+    main(["clean", "2024-01", "--master", "local[2]"])
+    main(["model", "2024-01", "--sample-zones", "--master", "local[2]"])
+    capsys.readouterr()
+
+    assert main(["analytics", "2024-01", "--master", "local[2]"]) == 0
+    out = capsys.readouterr().out
+    report_path = tmp_path / "analytics" / "yellow" / "2024-01_2024-01.json"
+    assert f"wrote {report_path}" in out
+
+    report = AnalyticsReport.from_json(report_path.read_text())
+    assert (report.taxi_type, report.start, report.end) == ("yellow", "2024-01", "2024-01")
+    assert [r.name for r in report.results] == list(QUERY_NAMES)
+    assert len(report.result("daily_trips").rows) == 31
+
+
 def test_load_dry_run_prints_one_transaction_per_month(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:

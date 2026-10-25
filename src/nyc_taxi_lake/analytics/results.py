@@ -64,3 +64,40 @@ class QueryResult:
 
     def to_json(self) -> str:
         return json.dumps(self.to_dict(), indent=2)
+
+
+@dataclass(frozen=True)
+class AnalyticsReport:
+    """Every query's result for one taxi type and month range, the dashboard's input."""
+
+    taxi_type: str
+    start: str
+    end: str
+    results: tuple[QueryResult, ...]
+
+    def result(self, name: str) -> QueryResult:
+        for result in self.results:
+            if result.name == name:
+                return result
+        raise KeyError(f"no {name!r} result in the report")
+
+    def to_json(self) -> str:
+        return json.dumps(
+            {
+                "taxi_type": self.taxi_type,
+                "start": self.start,
+                "end": self.end,
+                "results": [r.to_dict() for r in self.results],
+            },
+            indent=2,
+        )
+
+    @classmethod
+    def from_json(cls, text: str) -> AnalyticsReport:
+        data = json.loads(text)
+        return cls(
+            taxi_type=data["taxi_type"],
+            start=data["start"],
+            end=data["end"],
+            results=tuple(QueryResult.from_dict(r) for r in data["results"]),
+        )
