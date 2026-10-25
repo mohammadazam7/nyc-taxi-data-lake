@@ -1,4 +1,5 @@
-# Glue Spark jobs that run the pipeline's clean, model and quality stages in AWS.
+# Glue Spark jobs that run the pipeline's clean, model and quality stages in AWS, and,
+# when a Redshift workgroup is given, the load stage.
 #
 # All three jobs run the same entry script with the package wheel installed on top of
 # Glue's own PySpark, so the code that runs in AWS is the code that is tested locally.
@@ -19,7 +20,7 @@ locals {
   artifacts_arn = "arn:${local.partition}:s3:::${var.artifacts_bucket}"
 
   script_key = "glue/nyc_lake_job.py"
-  stages     = toset(["clean", "model", "quality"])
+  stages     = toset(concat(["clean", "model", "quality"], var.load == null ? [] : ["load"]))
 
   # Glue passes these to the entry script on every run; --start and --end come with
   # the run itself.
@@ -32,6 +33,11 @@ locals {
     "--enable-continuous-cloudwatch-log" = "true"
     "--enable-job-insights"              = "true"
     "--TempDir"                          = "s3://${var.artifacts_bucket}/glue-temp/"
+  }
+
+  load_arguments = var.load == null ? {} : {
+    "--redshift-workgroup" = var.load.workgroup_name
+    "--redshift-database"  = var.load.database_name
   }
 
   quality_arguments = var.alert_topic_arn == null ? {
@@ -58,7 +64,7 @@ resource "aws_glue_job" "stage" {
   role_arn          = aws_iam_role.stage[each.key].arn
   glue_version      = var.glue_version
   worker_type       = var.worker_type
-  number_of_workers = var.workers[each.key]
+  number_of_workers = lookup(var.workers, each.key, 2)
   timeout           = var.timeout_minutes
   max_retries       = 0
   tags              = var.tags
@@ -79,5 +85,6 @@ resource "aws_glue_job" "stage" {
     local.common_arguments,
     { "--stage" = each.key },
     each.key == "quality" ? local.quality_arguments : {},
+    each.key == "load" ? local.load_arguments : {},
   )
 }
