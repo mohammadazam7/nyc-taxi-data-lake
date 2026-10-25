@@ -43,6 +43,10 @@ class Settings:
     def quality_root(self) -> LakePath:
         return self.lake_root / "quality"
 
+    @property
+    def analytics_root(self) -> LakePath:
+        return self.lake_root / "analytics"
+
     @classmethod
     def from_env(cls) -> Settings:
         return cls(

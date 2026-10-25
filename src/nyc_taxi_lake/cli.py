@@ -136,6 +136,32 @@ def _load(args: argparse.Namespace, settings: Settings) -> int:
     return 0
 
 
+def _analytics(args: argparse.Namespace, settings: Settings) -> int:
+    from nyc_taxi_lake.analytics.queries import load_queries, month_bounds
+    from nyc_taxi_lake.analytics.results import AnalyticsReport
+    from nyc_taxi_lake.analytics.spark_runner import register_warehouse, run_queries
+    from nyc_taxi_lake.spark import get_spark
+
+    months = month_range(args.start, args.end or args.start)
+    start, end = months[0], months[-1]
+    spark = get_spark("nyc-lake-analytics", master=args.master)
+    try:
+        register_warehouse(spark, settings.warehouse_root / settings.taxi_type)
+        results = run_queries(spark, load_queries(), month_bounds(start, end))
+    finally:
+        spark.stop()
+
+    report = AnalyticsReport(settings.taxi_type, start.key, end.key, tuple(results))
+    out_dir = settings.analytics_root / settings.taxi_type
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out = out_dir / f"{start.key}_{end.key}.json"
+    out.write_text(report.to_json())
+    for result in results:
+        print(f"{result.name:22} {len(result.rows):>5} rows")
+    print(f"wrote {out}")
+    return 0
+
+
 def _run_options(args: argparse.Namespace) -> RunOptions:
     return RunOptions(
         master=args.master,
@@ -279,6 +305,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     load.add_argument("--dry-run", action="store_true", help="print the SQL instead of running it")
 
+    analytics = sub.add_parser(
+        "analytics", help="run the analytics queries over modelled months into a JSON report"
+    )
+    analytics.add_argument("start", help="first month, YYYY-MM")
+    analytics.add_argument("end", nargs="?", help="last month, YYYY-MM (default: start)")
+    analytics.add_argument("--master", default="local[*]", help="Spark master URL")
+
     run = sub.add_parser("run", help="run the stages in order, each over the whole month range")
     run.add_argument("start", help="first month, YYYY-MM")
     run.add_argument("end", nargs="?", help="last month, YYYY-MM (default: start)")
@@ -315,6 +348,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _quality(args, settings)
     if args.command == "load":
         return _load(args, settings)
+    if args.command == "analytics":
+        return _analytics(args, settings)
     if args.command == "run":
         return _run(args)
     if args.command == "backfill":
