@@ -178,3 +178,49 @@ run "outputs_name_every_stage" {
     error_message = "job_names must map each stage to its job"
   }
 }
+
+run "no_load_job_without_a_workgroup" {
+  command = plan
+
+  assert {
+    condition     = !contains(keys(aws_glue_job.stage), "load")
+    error_message = "the load job needs a workgroup"
+  }
+}
+
+run "load_job_with_a_workgroup" {
+  command = plan
+
+  variables {
+    load = {
+      workgroup_name = "nyc-lake-test-warehouse"
+      workgroup_arn  = "arn:aws:redshift-serverless:us-east-1:123456789012:workgroup/0000"
+      database_name  = "taxi"
+    }
+  }
+
+  assert {
+    condition     = aws_glue_job.stage["load"].default_arguments["--redshift-workgroup"] == "nyc-lake-test-warehouse"
+    error_message = "the load job must target the given workgroup"
+  }
+
+  assert {
+    condition     = aws_glue_job.stage["load"].default_arguments["--redshift-database"] == "taxi"
+    error_message = "the load job must target the given database"
+  }
+
+  assert {
+    condition     = aws_glue_job.stage["load"].number_of_workers == 2
+    error_message = "the load job only issues SQL and gets Glue's minimum of 2 workers"
+  }
+
+  assert {
+    condition     = length(local.read_prefixes.load) == 0 && length(local.write_prefixes.load) == 0
+    error_message = "the load job's role must not touch the lake; COPY reads it as the namespace role"
+  }
+
+  assert {
+    condition     = !contains(keys(aws_glue_job.stage["clean"].default_arguments), "--redshift-workgroup")
+    error_message = "only the load job takes Redshift arguments"
+  }
+}

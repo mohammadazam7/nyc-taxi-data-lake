@@ -98,6 +98,26 @@ jobs:
         run: |
           nyc-lake quality 2024-01 2024-03
           test -f "$NYC_LAKE_ROOT/quality/yellow/2024-03.json"
+      - name: Backfill skips the months that passed
+        env:
+          NYC_LAKE_ROOT: ${{ runner.temp }}/lake
+        run: |
+          nyc-lake backfill 2024-01 2024-04 --sample --sample-rows 20000 --sample-zones \
+            | tee backfill.log
+          grep -q "1 done, 3 skipped" backfill.log
+          test -f "$NYC_LAKE_ROOT/quality/yellow/2024-04.json"
+
+  docker:
+    name: Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build
+        run: docker build --tag nyc-lake:ci .
+      - name: Run one synthetic month through every local stage
+        run: |
+          docker run --rm nyc-lake:ci \
+            run 2024-01 --sample --sample-rows 5000 --sample-zones --master "local[2]"
 
   terraform:
     name: Terraform
