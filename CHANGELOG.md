@@ -6,6 +6,14 @@ All notable changes are recorded here. The format follows
 ## [Unreleased]
 
 ### Added
+- Milestone 8: analytics. Five queries over the star schema (revenue per month, trips
+  per day, demand by weekday and hour, busiest pickup zones, payment mix) in the SQL
+  subset shared by Spark, Redshift and Athena, with the month range bound as named
+  parameters. `nyc-lake analytics` runs them with Spark SQL into one JSON report per
+  range; `nyc-lake dashboard` renders the report as a self-contained HTML page with
+  inline SVG charts and labels synthetic data from the raw-zone manifests. CI renders
+  the dashboard for its synthetic months and uploads it as an artifact. Architecture
+  document and five decision records under `docs/`.
 - Milestone 7: orchestration. `nyc-lake run` chains the stages over a month range,
   stage-major, and stops at the first failure; `nyc-lake backfill` runs month by month
   and skips months whose quality report passed, so it resumes after a failure. A
