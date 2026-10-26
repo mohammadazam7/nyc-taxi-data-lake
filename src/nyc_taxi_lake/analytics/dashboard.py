@@ -151,6 +151,25 @@ def _payments(result: QueryResult) -> str:
     return _table(("Payment type", "Trips", "Share", "Revenue", "Tips / fares"), rows)
 
 
+def provenance_note(sources: Sequence[str]) -> str:
+    """Say where the report's trips came from, from the raw-zone manifest sources.
+
+    A dashboard drawn from the synthetic generator looks like a real one, so the page
+    states it whenever any month was generated rather than downloaded.
+    """
+    synthetic = [s for s in sources if s.startswith("synthetic://")]
+    if not sources:
+        return ""
+    if len(synthetic) == len(sources):
+        return (
+            "Synthetic sample data from nyc-lake ingest --sample, not TLC trip records; "
+            "the figures show the pipeline working, not real taxi demand."
+        )
+    if synthetic:
+        return f"{len(synthetic)} of {len(sources)} months are synthetic sample data."
+    return "Source: NYC TLC trip record files."
+
+
 def render(report: AnalyticsReport, *, source_note: str = "") -> str:
     """The dashboard for ``report`` as a complete HTML document."""
     taxi = escape(report.taxi_type.capitalize())

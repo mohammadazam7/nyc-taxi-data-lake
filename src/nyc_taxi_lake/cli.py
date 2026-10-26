@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import os
 import sys
@@ -162,6 +163,33 @@ def _analytics(args: argparse.Namespace, settings: Settings) -> int:
     return 0
 
 
+def _dashboard(args: argparse.Namespace, settings: Settings) -> int:
+    from nyc_taxi_lake.analytics.dashboard import provenance_note, render
+    from nyc_taxi_lake.analytics.results import AnalyticsReport
+    from nyc_taxi_lake.ingest.raw_zone import MANIFEST, partition_dir
+
+    months = month_range(args.start, args.end or args.start)
+    name = f"{months[0].key}_{months[-1].key}"
+    reports = settings.analytics_root / settings.taxi_type
+    source = reports / f"{name}.json"
+    if not source.exists():
+        print(f"nyc-lake dashboard: no report at {source}; run nyc-lake analytics first")
+        return 1
+    report = AnalyticsReport.from_json(source.read_text())
+
+    sources = []
+    for month in months:
+        manifest = partition_dir(settings.raw_root, settings.taxi_type, month) / MANIFEST
+        if manifest.exists():
+            sources.append(json.loads(manifest.read_text())["source"])
+    note = args.note if args.note is not None else provenance_note(sources)
+
+    out = reports / f"{name}.html"
+    out.write_text(render(report, source_note=note))
+    print(f"wrote {out}")
+    return 0
+
+
 def _run_options(args: argparse.Namespace) -> RunOptions:
     return RunOptions(
         master=args.master,
@@ -312,6 +340,16 @@ def build_parser() -> argparse.ArgumentParser:
     analytics.add_argument("end", nargs="?", help="last month, YYYY-MM (default: start)")
     analytics.add_argument("--master", default="local[*]", help="Spark master URL")
 
+    dashboard = sub.add_parser(
+        "dashboard", help="render an analytics report as a static HTML page next to it"
+    )
+    dashboard.add_argument("start", help="first month, YYYY-MM")
+    dashboard.add_argument("end", nargs="?", help="last month, YYYY-MM (default: start)")
+    dashboard.add_argument(
+        "--note",
+        help="text shown under the title (default: the data source, from the raw manifests)",
+    )
+
     run = sub.add_parser("run", help="run the stages in order, each over the whole month range")
     run.add_argument("start", help="first month, YYYY-MM")
     run.add_argument("end", nargs="?", help="last month, YYYY-MM (default: start)")
@@ -350,6 +388,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _load(args, settings)
     if args.command == "analytics":
         return _analytics(args, settings)
+    if args.command == "dashboard":
+        return _dashboard(args, settings)
     if args.command == "run":
         return _run(args)
     if args.command == "backfill":
