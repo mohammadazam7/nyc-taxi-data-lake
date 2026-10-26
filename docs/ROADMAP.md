@@ -24,7 +24,7 @@ tagged when it completes. Checked items are done.
       failures and data-quality breaches.
 - [x] **M7 · Orchestration.** Glue workflow (or Step Functions) chaining ingest, clean,
       model, quality and load, monthly schedule, backfill command, Docker dev image.
-- [ ] **M8 · Analytics.** SQL for trip volume, revenue and busiest zones; a small static
+- [x] **M8 · Analytics.** SQL for trip volume, revenue and busiest zones; a small static
       dashboard generated from the warehouse; architecture docs and decision records.
 - [ ] **M9 · v1.0.** Measured run on real TLC months (row counts, runtimes, costs),
       CHANGELOG, release.

@@ -98,6 +98,23 @@ jobs:
         run: |
           nyc-lake quality 2024-01 2024-03
           test -f "$NYC_LAKE_ROOT/quality/yellow/2024-03.json"
+      - name: Run the analytics queries
+        env:
+          NYC_LAKE_ROOT: ${{ runner.temp }}/lake
+        run: |
+          nyc-lake analytics 2024-01 2024-03
+          test -f "$NYC_LAKE_ROOT/analytics/yellow/2024-01_2024-03.json"
+      - name: Render the dashboard
+        env:
+          NYC_LAKE_ROOT: ${{ runner.temp }}/lake
+        run: |
+          nyc-lake dashboard 2024-01 2024-03
+          grep -q "Synthetic sample data" "$NYC_LAKE_ROOT/analytics/yellow/2024-01_2024-03.html"
+      - name: Upload the dashboard
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-synthetic-2024-q1
+          path: ${{ runner.temp }}/lake/analytics/yellow/2024-01_2024-03.html
       - name: Backfill skips the months that passed
         env:
           NYC_LAKE_ROOT: ${{ runner.temp }}/lake

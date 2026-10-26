@@ -12,8 +12,8 @@ Redshift Serverless, and alerts when data quality slips.
 The same code runs on a laptop against local folders and in AWS against S3, so every
 stage is testable without a cloud account.
 
-> **Status:** under active development. Milestones 1-7 (ingest, clean, model, data quality, AWS lake,
-> warehouse load and orchestration) are complete; see the [roadmap](docs/ROADMAP.md) for what's next.
+> **Status:** under active development. Milestones 1-8 (ingest, clean, model, data quality, AWS lake,
+> warehouse load, orchestration and analytics) are complete; see the [roadmap](docs/ROADMAP.md) for what's next.
 
 ## Architecture
 
@@ -39,6 +39,7 @@ flowchart LR
 | AWS lake | Terraform for S3, Glue catalog, crawlers and jobs, Athena, per-stage IAM roles | Done |
 | Warehouse | Terraform for Redshift Serverless, `COPY` loader, CloudWatch alarms, SNS | Done |
 | Orchestration | `run` and `backfill` commands, Docker image, Step Functions state machine on a monthly schedule | Done |
+| Analytics | Five SQL queries shared by Spark and Redshift, JSON report, static HTML dashboard | Done |
 
 ## Quick start
 
@@ -77,6 +78,7 @@ lake/warehouse/yellow/fact_trips/pickup_date=2024-01-15/part-*.parquet
 lake/warehouse/yellow/dim_zone/part-*.parquet   (and the other dimensions)
 lake/warehouse/_runs/yellow/2024-01.json
 lake/quality/yellow/2024-01.json
+lake/analytics/yellow/2024-01_2024-03.json   (and .html, the dashboard)
 ```
 
 `nyc-lake clean` prints one line per month: rows in, rows kept, rows quarantined and the
@@ -254,7 +256,34 @@ It runs in the Docker image and the raw zone is synced to S3 before an execution
 starts. Running ingest inside AWS, as an ECS task or a Glue job that writes to S3
 directly, is a known gap.
 
+## Analytics
+
+Five queries in `src/nyc_taxi_lake/analytics/sql/` answer the questions the dashboard
+shows: revenue per month split into fares, tips and other charges; trips per day;
+pickups by weekday and hour; the 15 busiest pickup zones; and the payment-type mix with
+tips as a share of fares. They are written in the subset of SQL that Spark SQL, Redshift
+and Athena share, use unqualified table names and bind the month range as the named
+parameters `:start_key` and `:end_key`, so the same text runs against the local warehouse
+zone and against Redshift.
+
+```bash
+nyc-lake analytics 2024-01 2024-03   # lake/analytics/yellow/2024-01_2024-03.json
+nyc-lake dashboard 2024-01 2024-03   # lake/analytics/yellow/2024-01_2024-03.html
+```
+
+`analytics` runs the queries with Spark SQL and writes every result to one JSON report.
+`dashboard` renders that report as a single HTML file with inline SVG charts, no scripts
+and no external requests, so it opens from disk, from an S3 object or from a CI
+artifact. It reads the raw-zone manifests and states the data source under the title;
+a report built from `ingest --sample` months is labelled as synthetic. The CI smoke run
+uploads the dashboard for its three synthetic months as the `dashboard-synthetic-2024-q1`
+artifact. The figures in it describe the generator, not real taxi demand.
+
 ## Design notes
+
+The [architecture document](docs/architecture.md) describes the stage contracts, failure
+handling, security and cost controls; the [decision records](docs/adr/) explain the main
+choices and the alternatives considered.
 
 - **Idempotent ingest.** Each partition has a manifest with a content hash. Re-running a
   month whose source hasn't changed is a no-op, so backfills are safe to retry.
@@ -286,13 +315,12 @@ make check   # ruff lint + format check, mypy --strict, pytest
 ```
 
 CI runs the same checks on Python 3.11-3.13, the Spark tests on Java 17, an
-end-to-end smoke run that ingests, cleans, models and quality-checks three synthetic
-months and then checks that a backfill resumes, a Docker build that runs one synthetic
+end-to-end smoke run that ingests, cleans, models, quality-checks and reports on three
+synthetic months, renders their dashboard and then checks that a backfill resumes, a Docker build that runs one synthetic
 month through the image, and `terraform fmt`, `validate` and `test` for every module.
-TLC's
-download site is not reachable from CI, so all automated runs use the synthetic
-generator and a placeholder zone lookup. Spark tests are
-marked `spark` and skip automatically when PySpark isn't installed.
+TLC's download site is not reachable from CI, so all automated runs use the synthetic
+generator and a placeholder zone lookup. Spark tests are marked `spark` and skip
+automatically when PySpark isn't installed.
 
 ## Project layout
 
@@ -325,6 +353,13 @@ src/nyc_taxi_lake/
   load/
     statements.py   per-month DELETE and COPY statements
     redshift.py     Redshift Data API runner
+  analytics/
+    sql/            the five analytics queries
+    queries.py      query loading and month-range parameters
+    spark_runner.py runs the queries over the warehouse zone
+    results.py      JSON-serialisable query results and report
+    svg.py          inline SVG chart primitives
+    dashboard.py    static HTML dashboard
   spark.py          SparkSession factory (UTC, dynamic partition overwrite)
   paths.py          lake locations: local folders or S3 prefixes
   glue_entry.py     runs a stage inside an AWS Glue job
