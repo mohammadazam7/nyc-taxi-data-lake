@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from nyc_taxi_lake.analytics.results import AnalyticsReport
 from nyc_taxi_lake.cli import build_parser, main
 
 
@@ -178,3 +179,33 @@ def test_run_end_to_end_then_backfill_resumes(
     assert main(["backfill", "2024-01", "2024-02", *common]) == 0
     assert "backfill: 1 done, 1 skipped" in capsys.readouterr().out
     assert (tmp_path / "quality" / "yellow" / "2024-02.json").exists()
+
+
+def test_dashboard_renders_the_report_and_states_the_source(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    analytics_report: AnalyticsReport,
+) -> None:
+    monkeypatch.setenv("NYC_LAKE_ROOT", str(tmp_path))
+    main(["ingest", "2024-01", "--sample", "--sample-rows", "100"])
+    reports = tmp_path / "analytics" / "yellow"
+    reports.mkdir(parents=True)
+    (reports / "2024-01_2024-02.json").write_text(analytics_report.to_json())
+    capsys.readouterr()
+
+    assert main(["dashboard", "2024-01", "2024-02"]) == 0
+    page = reports / "2024-01_2024-02.html"
+    assert f"wrote {page}" in capsys.readouterr().out
+    assert "Synthetic sample data" in page.read_text()
+
+    assert main(["dashboard", "2024-01", "2024-02", "--note", "Hand-written note."]) == 0
+    assert "Hand-written note." in page.read_text()
+
+
+def test_dashboard_without_a_report_points_at_analytics(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv("NYC_LAKE_ROOT", str(tmp_path))
+    assert main(["dashboard", "2024-03"]) == 1
+    assert "run nyc-lake analytics first" in capsys.readouterr().out
