@@ -105,6 +105,14 @@ def test_run_stages_stops_at_the_first_failure() -> None:
     assert len(main.calls) == 2
 
 
+def test_run_stages_times_each_stage_with_the_given_clock() -> None:
+    ticks = iter([0.0, 2.5, 2.5, 10.0])
+    results = run_stages(
+        [Month(2024, 1)], ("ingest", "clean"), RunOptions(), FakeMain(), clock=lambda: next(ticks)
+    )
+    assert [r.seconds for r in results] == [2.5, 7.5]
+
+
 def test_month_passed_reads_the_quality_report(tmp_path: Path) -> None:
     settings = _settings(tmp_path)
     assert not month_passed(settings, Month(2024, 1))
