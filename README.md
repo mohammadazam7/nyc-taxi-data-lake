@@ -284,6 +284,8 @@ artifact. The figures in it describe the generator, not real taxi demand.
 The [architecture document](docs/architecture.md) describes the stage contracts, failure
 handling, security and cost controls; the [decision records](docs/adr/) explain the main
 choices and the alternatives considered.
+The [measured run](docs/MEASURED_RUN.md) records row counts and stage durations for a
+synthetic three-month run on a 2-vCPU VM.
 
 - **Idempotent ingest.** Each partition has a manifest with a content hash. Re-running a
   month whose source hasn't changed is a no-op, so backfills are safe to retry.

@@ -1,0 +1,34 @@
+{
+  "stages": [
+    {
+      "stage": "ingest",
+      "start": "2024-01",
+      "end": "2024-03",
+      "exit_code": 0,
+      "seconds": 1.727
+    },
+    {
+      "stage": "clean",
+      "start": "2024-01",
+      "end": "2024-03",
+      "exit_code": 0,
+      "seconds": 37.141
+    },
+    {
+      "stage": "model",
+      "start": "2024-01",
+      "end": "2024-03",
+      "exit_code": 0,
+      "seconds": 26.893
+    },
+    {
+      "stage": "quality",
+      "start": "2024-01",
+      "end": "2024-03",
+      "exit_code": 0,
+      "seconds": 30.24
+    }
+  ],
+  "total_seconds": 96.001,
+  "ok": true
+}
