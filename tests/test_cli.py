@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -146,10 +147,22 @@ def test_run_ingest_stage_over_a_range(
     monkeypatch.setenv("NYC_LAKE_ROOT", str(tmp_path))
     argv = ["run", "2024-01", "2024-02", "--stages", "ingest", "--sample", "--sample-rows", "300"]
     assert main(argv) == 0
-    assert [line.split()[0] for line in capsys.readouterr().out.splitlines()] == [
-        "2024-01",
-        "2024-02",
-    ]
+    lines = capsys.readouterr().out.splitlines()
+    assert [line.split()[0] for line in lines[:2]] == ["2024-01", "2024-02"]
+    assert lines[2].startswith("nyc-lake run: ingest   exit 0")
+    assert lines[3].startswith("nyc-lake run: total ")
+
+
+def test_run_writes_stage_timings(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("NYC_LAKE_ROOT", str(tmp_path / "lake"))
+    report = tmp_path / "out" / "timings.json"
+    argv = ["run", "2024-01", "--stages", "ingest", "--sample", "--sample-rows", "300"]
+    assert main([*argv, "--timings", str(report)]) == 0
+    body = json.loads(report.read_text())
+    assert body["ok"] is True
+    assert [s["stage"] for s in body["stages"]] == ["ingest"]
+    assert body["stages"][0]["seconds"] >= 0
+    assert body["total_seconds"] == body["stages"][0]["seconds"]
 
 
 def test_backfill_ingest_stage_one_month_at_a_time(

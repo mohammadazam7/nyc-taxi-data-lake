@@ -108,6 +108,24 @@ def run_stages(
     return results
 
 
+def timings(results: Sequence[StepResult]) -> dict[str, object]:
+    """A JSON-ready summary of a run: each stage's exit code and duration, and the total."""
+    return {
+        "stages": [
+            {
+                "stage": r.stage,
+                "start": r.start,
+                "end": r.end,
+                "exit_code": r.exit_code,
+                "seconds": round(r.seconds, 3),
+            }
+            for r in results
+        ],
+        "total_seconds": round(sum(r.seconds for r in results), 3),
+        "ok": all(r.ok for r in results),
+    }
+
+
 def month_passed(settings: Settings, month: Month) -> bool:
     """True if the month's quality report exists and did not fail.
 

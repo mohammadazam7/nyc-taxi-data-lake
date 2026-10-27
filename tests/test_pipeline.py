@@ -11,11 +11,13 @@ from nyc_taxi_lake.months import Month, month_range
 from nyc_taxi_lake.pipeline import (
     DEFAULT_STAGES,
     RunOptions,
+    StepResult,
     backfill,
     month_passed,
     parse_stages,
     run_stages,
     stage_argv,
+    timings,
 )
 
 
@@ -111,6 +113,19 @@ def test_run_stages_times_each_stage_with_the_given_clock() -> None:
         [Month(2024, 1)], ("ingest", "clean"), RunOptions(), FakeMain(), clock=lambda: next(ticks)
     )
     assert [r.seconds for r in results] == [2.5, 7.5]
+
+
+def test_timings_summarises_a_failed_run() -> None:
+    results = [
+        StepResult("ingest", "2024-01", "2024-01", 0, 1.25),
+        StepResult("clean", "2024-01", "2024-01", 1, 3.5),
+    ]
+    body = timings(results)
+    assert body["ok"] is False
+    assert body["total_seconds"] == 4.75
+    stages = body["stages"]
+    assert isinstance(stages, list)
+    assert [s["exit_code"] for s in stages] == [0, 1]
 
 
 def test_month_passed_reads_the_quality_report(tmp_path: Path) -> None:

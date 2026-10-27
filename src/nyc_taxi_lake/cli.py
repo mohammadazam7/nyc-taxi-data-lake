@@ -25,6 +25,7 @@ from nyc_taxi_lake.pipeline import (
     backfill,
     parse_stages,
     run_stages,
+    timings,
 )
 
 
@@ -202,10 +203,17 @@ def _run_options(args: argparse.Namespace) -> RunOptions:
 
 def _run(args: argparse.Namespace) -> int:
     months = month_range(args.start, args.end or args.start)
-    for step in run_stages(months, args.stages, _run_options(args), main):
-        if not step.ok:
-            print(f"nyc-lake run: {step.stage} failed for {step.start}..{step.end}")
-            return step.exit_code
+    steps = run_stages(months, args.stages, _run_options(args), main)
+    for step in steps:
+        print(f"nyc-lake run: {step.stage:8} exit {step.exit_code}  {step.seconds:8.1f} s")
+    print(f"nyc-lake run: total {sum(s.seconds for s in steps):.1f} s")
+    if args.timings is not None:
+        args.timings.parent.mkdir(parents=True, exist_ok=True)
+        args.timings.write_text(json.dumps(timings(steps), indent=2) + "\n")
+    failed = next((s for s in steps if not s.ok), None)
+    if failed is not None:
+        print(f"nyc-lake run: {failed.stage} failed for {failed.start}..{failed.end}")
+        return failed.exit_code
     return 0
 
 
@@ -353,6 +361,9 @@ def build_parser() -> argparse.ArgumentParser:
     run = sub.add_parser("run", help="run the stages in order, each over the whole month range")
     run.add_argument("start", help="first month, YYYY-MM")
     run.add_argument("end", nargs="?", help="last month, YYYY-MM (default: start)")
+    run.add_argument(
+        "--timings", type=Path, help="write each stage's exit code and duration to this JSON file"
+    )
     _add_run_arguments(run)
 
     back = sub.add_parser(
