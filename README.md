@@ -338,6 +338,15 @@ TLC's download site is not reachable from CI, so all automated runs use the synt
 generator and a placeholder zone lookup. Spark tests are marked `spark` and skip
 automatically when PySpark isn't installed.
 
+### Releasing
+
+A release is a commit on `main` that moves the `Unreleased` CHANGELOG entries under a
+`## [X.Y.Z] - YYYY-MM-DD` heading and sets the same version in `pyproject.toml` and
+`src/nyc_taxi_lake/__init__.py`; `tests/test_version.py` fails if they disagree.
+Pushing the tag `vX.Y.Z` runs `.github/workflows/release.yml`, which checks the tag
+against the declared version and publishes a GitHub release whose notes are that
+CHANGELOG section, printed by `python -m tools.release_notes X.Y.Z`.
+
 ## Project layout
 
 ```
@@ -387,6 +396,7 @@ infra/
   envs/dev/         root configuration wiring them together
 sql/redshift/       DDL for the warehouse tables
 tools/              release-notes extraction for the release workflow
+.github/workflows/  CI and the tag-driven release workflow
 Dockerfile          development image with PySpark and Java
 tests/
 docs/ROADMAP.md
