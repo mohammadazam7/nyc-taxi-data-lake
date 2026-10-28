@@ -5,7 +5,13 @@ All notable changes are recorded here. The format follows
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-28
+
 ### Added
+- Milestone 9: measured run. `nyc-lake run --timings` writes per-stage wall-clock
+  durations as JSON; `docs/MEASURED_RUN.md` records two synthetic three-month runs
+  (50,000 and 200,000 rows per month) with row counts, stage durations and the
+  hardware, and the README summarises them.
 - Milestone 8: analytics. Five queries over the star schema (revenue per month, trips
   per day, demand by weekday and hour, busiest pickup zones, payment mix) in the SQL
   subset shared by Spark, Redshift and Athena, with the month range bound as named

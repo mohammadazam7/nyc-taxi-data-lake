@@ -12,8 +12,8 @@ Redshift Serverless, and alerts when data quality slips.
 The same code runs on a laptop against local folders and in AWS against S3, so every
 stage is testable without a cloud account.
 
-> **Status:** under active development. Milestones 1-8 (ingest, clean, model, data quality, AWS lake,
-> warehouse load, orchestration and analytics) are complete; see the [roadmap](docs/ROADMAP.md) for what's next.
+> **Status:** v1.0.0. The [CHANGELOG](CHANGELOG.md) lists what each release contains
+> and the [roadmap](docs/ROADMAP.md) records the milestones that led to it.
 
 ## Architecture
 

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nyc-taxi-lake"
-version = "0.1.0"
+version = "1.0.0"
 description = "Batch data lake for NYC TLC taxi trips: S3 raw zone, PySpark cleaning, Redshift star schema, data-quality alerts."
 readme = "README.md"
 requires-python = ">=3.11"

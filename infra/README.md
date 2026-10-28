@@ -33,7 +33,7 @@ it before the first run. From the repository root (the key must match `package_v
 
 ```bash
 pip wheel . --no-deps -w dist
-aws s3 cp dist/nyc_taxi_lake-0.1.0-py3-none-any.whl \
+aws s3 cp dist/nyc_taxi_lake-1.0.0-py3-none-any.whl \
   "s3://$(terraform -chdir=infra/envs/dev output -raw artifacts_bucket)/wheels/"
 ```
 
