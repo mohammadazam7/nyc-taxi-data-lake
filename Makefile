@@ -12,7 +12,7 @@ format:
 	ruff check --fix .
 
 typecheck:
-	mypy src
+	mypy src tools
 
 test:
 	pytest -m "not network"

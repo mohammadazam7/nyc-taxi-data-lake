@@ -8,6 +8,10 @@ All notable changes are recorded here. The format follows
 ## [1.0.0] - 2026-10-28
 
 ### Added
+- Release workflow: pushing a `vX.Y.Z` tag checks it against the declared version and
+  publishes a GitHub release whose notes are the matching CHANGELOG section, extracted
+  by `python -m tools.release_notes`. A test keeps `pyproject.toml`, the package version
+  and the CHANGELOG in agreement.
 - Milestone 9: measured run. `nyc-lake run --timings` writes per-stage wall-clock
   durations as JSON; `docs/MEASURED_RUN.md` records two synthetic three-month runs
   (50,000 and 200,000 rows per month) with row counts, stage durations and the

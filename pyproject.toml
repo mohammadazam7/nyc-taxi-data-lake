@@ -32,6 +32,8 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# tools/ holds repository scripts that are not part of the installed package.
+pythonpath = ["."]
 addopts = "-ra --strict-markers"
 markers = [
   "network: tests that download real TLC data (skipped in CI)",
