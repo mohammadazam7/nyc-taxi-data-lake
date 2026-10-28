@@ -25,7 +25,7 @@ jobs:
       - run: pip install -e ".[dev]"
       - run: ruff check .
       - run: ruff format --check .
-      - run: mypy src
+      - run: mypy src tools
 
   test:
     name: Tests (Python ${{ matrix.python }})

@@ -386,6 +386,7 @@ infra/
                     modules
   envs/dev/         root configuration wiring them together
 sql/redshift/       DDL for the warehouse tables
+tools/              release-notes extraction for the release workflow
 Dockerfile          development image with PySpark and Java
 tests/
 docs/ROADMAP.md
