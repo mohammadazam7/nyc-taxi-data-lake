@@ -279,6 +279,22 @@ a report built from `ingest --sample` months is labelled as synthetic. The CI sm
 uploads the dashboard for its three synthetic months as the `dashboard-synthetic-2024-q1`
 artifact. The figures in it describe the generator, not real taxi demand.
 
+## Results
+
+End-to-end `nyc-lake run` over three synthetic months (2024-01 to 2024-03) on a 2-vCPU
+cloud VM with 7 GiB of memory, PySpark 4.2 in `local[*]` mode and local Parquet. The
+TLC CDN was not reachable from that machine, so these figures describe the generator,
+not real TLC months.
+
+| Rows per month | Raw rows | Clean rows | Quarantined | Total wall clock |
+|---:|---:|---:|---:|---:|
+| 50,000 | 150,750 | 147,550 | 3,200 (2.1%) | 96.0 s |
+| 200,000 | 603,000 | 590,530 | 12,470 (2.1%) | 117.4 s |
+
+Quadrupling the input added 22% to the runtime: at this scale JVM and Spark session
+start-up dominate. Per-stage durations, the method and the limits of these numbers are
+in [docs/MEASURED_RUN.md](docs/MEASURED_RUN.md).
+
 ## Design notes
 
 The [architecture document](docs/architecture.md) describes the stage contracts, failure

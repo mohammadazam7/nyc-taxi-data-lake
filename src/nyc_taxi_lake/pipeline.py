@@ -16,6 +16,7 @@ non-zero. Two orders are supported:
 from __future__ import annotations
 
 import json
+import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
@@ -26,6 +27,7 @@ STAGES = ("ingest", "clean", "model", "quality", "load")
 DEFAULT_STAGES = ("ingest", "clean", "model", "quality")
 
 Main = Callable[[Sequence[str] | None], int]
+Clock = Callable[[], float]
 
 
 @dataclass(frozen=True)
@@ -45,6 +47,7 @@ class StepResult:
     start: str
     end: str
     exit_code: int
+    seconds: float = 0.0
 
     @property
     def ok(self) -> bool:
@@ -85,18 +88,42 @@ def run_stages(
     stages: Sequence[str],
     options: RunOptions,
     main: Main,
+    clock: Clock = time.perf_counter,
 ) -> list[StepResult]:
-    """Run each stage over all ``months``; stop after the first stage that fails."""
+    """Run each stage over all ``months``; stop after the first stage that fails.
+
+    Each result carries the stage's wall-clock duration, read from ``clock`` (a
+    monotonic clock by default), so a run can report where its time went.
+    """
     if not months:
         return []
     start, end = min(months), max(months)
     results: list[StepResult] = []
     for stage in stages:
+        began = clock()
         code = main(stage_argv(stage, start, end, options))
-        results.append(StepResult(stage, start.key, end.key, code))
+        results.append(StepResult(stage, start.key, end.key, code, clock() - began))
         if code != 0:
             break
     return results
+
+
+def timings(results: Sequence[StepResult]) -> dict[str, object]:
+    """A JSON-ready summary of a run: each stage's exit code and duration, and the total."""
+    return {
+        "stages": [
+            {
+                "stage": r.stage,
+                "start": r.start,
+                "end": r.end,
+                "exit_code": r.exit_code,
+                "seconds": round(r.seconds, 3),
+            }
+            for r in results
+        ],
+        "total_seconds": round(sum(r.seconds for r in results), 3),
+        "ok": all(r.ok for r in results),
+    }
 
 
 def month_passed(settings: Settings, month: Month) -> bool:

@@ -26,5 +26,6 @@ tagged when it completes. Checked items are done.
       model, quality and load, monthly schedule, backfill command, Docker dev image.
 - [x] **M8 · Analytics.** SQL for trip volume, revenue and busiest zones; a small static
       dashboard generated from the warehouse; architecture docs and decision records.
-- [ ] **M9 · v1.0.** Measured run on real TLC months (row counts, runtimes, costs),
+- [ ] **M9 · v1.0.** Measured end-to-end run with row counts, stage runtimes and the
+      hardware used (synthetic months; TLC data documented as a reproduction step),
       CHANGELOG, release.
