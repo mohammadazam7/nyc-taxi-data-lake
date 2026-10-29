@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: dark; }
+html, body { margin: 0; }
+body {
+  @apply bg-void font-sans text-[14px] leading-[1.45] text-ink antialiased;
+  background:
+    radial-gradient(1200px 500px at 85% -10%, rgba(79, 163, 255, 0.12), transparent 60%),
+    radial-gradient(900px 500px at -10% 10%, rgba(247, 183, 51, 0.1), transparent 60%),
+    #0a0d14;
+}
+.axis-label { @apply pointer-events-none select-none whitespace-nowrap text-[11px] text-dim; }
+.scene-callout {
+  @apply whitespace-nowrap rounded-lg border border-line bg-[rgba(12,16,26,0.92)] px-2 py-1 text-xs font-semibold text-ink shadow-panel;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
