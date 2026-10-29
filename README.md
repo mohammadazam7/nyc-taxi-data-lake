@@ -284,6 +284,13 @@ artifact. The figures in it describe the generator, not real taxi demand.
 
 [**Open City Pulse**](https://mohammadazam7.github.io/nyc-taxi-data-lake/) · source in [`web/`](web/)
 
+### Demo
+
+[![City Pulse: 3D demand landscape, hour player and slot detail](docs/demo/city-pulse.png)](docs/demo/city-pulse.mp4)
+
+One minute in the explorer (click the image for the video): the landscape rising, the
+hour player, flying to the busiest slot, camera views, brushing dates and the panels.
+
 City Pulse is an interactive explorer for the analytics report. A 3D landscape shows
 pickups for every weekday and hour; the panels around it are linked to it and to each
 other:
