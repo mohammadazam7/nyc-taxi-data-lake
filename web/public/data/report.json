@@ -1,0 +1,1237 @@
+{
+ "taxi_type": "yellow",
+ "start": "2024-01",
+ "end": "2024-01",
+ "results": [
+  {
+   "name": "monthly_revenue",
+   "columns": [
+    "year",
+    "month",
+    "trips",
+    "revenue",
+    "fares",
+    "tips",
+    "other_charges",
+    "avg_revenue_per_trip"
+   ],
+   "rows": [
+    {
+     "year": 2024,
+     "month": 1,
+     "trips": 49217,
+     "revenue": 1025048.02,
+     "fares": 716068.95,
+     "tips": 89831.47,
+     "other_charges": 219147.6,
+     "avg_revenue_per_trip": 20.83
+    }
+   ]
+  },
+  {
+   "name": "daily_trips",
+   "columns": [
+    "calendar_date",
+    "trips",
+    "revenue",
+    "avg_distance_mi"
+   ],
+   "rows": [
+    {
+     "calendar_date": "2024-01-01",
+     "trips": 1599,
+     "revenue": 33621.18,
+     "avg_distance_mi": 2.54
+    },
+    {
+     "calendar_date": "2024-01-02",
+     "trips": 1577,
+     "revenue": 33216.74,
+     "avg_distance_mi": 2.54
+    },
+    {
+     "calendar_date": "2024-01-03",
+     "trips": 1569,
+     "revenue": 33304.47,
+     "avg_distance_mi": 2.57
+    },
+    {
+     "calendar_date": "2024-01-04",
+     "trips": 1527,
+     "revenue": 31652.2,
+     "avg_distance_mi": 2.46
+    },
+    {
+     "calendar_date": "2024-01-05",
+     "trips": 1582,
+     "revenue": 32123.92,
+     "avg_distance_mi": 2.39
+    },
+    {
+     "calendar_date": "2024-01-06",
+     "trips": 1560,
+     "revenue": 33138.68,
+     "avg_distance_mi": 2.59
+    },
+    {
+     "calendar_date": "2024-01-07",
+     "trips": 1555,
+     "revenue": 31874.74,
+     "avg_distance_mi": 2.43
+    },
+    {
+     "calendar_date": "2024-01-08",
+     "trips": 1634,
+     "revenue": 33623.94,
+     "avg_distance_mi": 2.45
+    },
+    {
+     "calendar_date": "2024-01-09",
+     "trips": 1529,
+     "revenue": 30794.58,
+     "avg_distance_mi": 2.39
+    },
+    {
+     "calendar_date": "2024-01-10",
+     "trips": 1596,
+     "revenue": 34454.69,
+     "avg_distance_mi": 2.63
+    },
+    {
+     "calendar_date": "2024-01-11",
+     "trips": 1603,
+     "revenue": 33654.98,
+     "avg_distance_mi": 2.52
+    },
+    {
+     "calendar_date": "2024-01-12",
+     "trips": 1614,
+     "revenue": 33382.53,
+     "avg_distance_mi": 2.47
+    },
+    {
+     "calendar_date": "2024-01-13",
+     "trips": 1572,
+     "revenue": 32225.1,
+     "avg_distance_mi": 2.45
+    },
+    {
+     "calendar_date": "2024-01-14",
+     "trips": 1604,
+     "revenue": 33345.35,
+     "avg_distance_mi": 2.51
+    },
+    {
+     "calendar_date": "2024-01-15",
+     "trips": 1571,
+     "revenue": 31852.27,
+     "avg_distance_mi": 2.4
+    },
+    {
+     "calendar_date": "2024-01-16",
+     "trips": 1657,
+     "revenue": 34783.92,
+     "avg_distance_mi": 2.52
+    },
+    {
+     "calendar_date": "2024-01-17",
+     "trips": 1517,
+     "revenue": 31772.22,
+     "avg_distance_mi": 2.5
+    },
+    {
+     "calendar_date": "2024-01-18",
+     "trips": 1594,
+     "revenue": 33959.49,
+     "avg_distance_mi": 2.56
+    },
+    {
+     "calendar_date": "2024-01-19",
+     "trips": 1570,
+     "revenue": 32661.39,
+     "avg_distance_mi": 2.49
+    },
+    {
+     "calendar_date": "2024-01-20",
+     "trips": 1607,
+     "revenue": 34072.97,
+     "avg_distance_mi": 2.56
+    },
+    {
+     "calendar_date": "2024-01-21",
+     "trips": 1603,
+     "revenue": 33066.63,
+     "avg_distance_mi": 2.47
+    },
+    {
+     "calendar_date": "2024-01-22",
+     "trips": 1654,
+     "revenue": 34389.38,
+     "avg_distance_mi": 2.46
+    },
+    {
+     "calendar_date": "2024-01-23",
+     "trips": 1631,
+     "revenue": 33847.17,
+     "avg_distance_mi": 2.49
+    },
+    {
+     "calendar_date": "2024-01-24",
+     "trips": 1599,
+     "revenue": 33776.33,
+     "avg_distance_mi": 2.54
+    },
+    {
+     "calendar_date": "2024-01-25",
+     "trips": 1633,
+     "revenue": 32767.85,
+     "avg_distance_mi": 2.37
+    },
+    {
+     "calendar_date": "2024-01-26",
+     "trips": 1518,
+     "revenue": 32091.0,
+     "avg_distance_mi": 2.54
+    },
+    {
+     "calendar_date": "2024-01-27",
+     "trips": 1630,
+     "revenue": 33101.01,
+     "avg_distance_mi": 2.42
+    },
+    {
+     "calendar_date": "2024-01-28",
+     "trips": 1615,
+     "revenue": 34781.2,
+     "avg_distance_mi": 2.6
+    },
+    {
+     "calendar_date": "2024-01-29",
+     "trips": 1590,
+     "revenue": 33401.33,
+     "avg_distance_mi": 2.52
+    },
+    {
+     "calendar_date": "2024-01-30",
+     "trips": 1566,
+     "revenue": 31759.3,
+     "avg_distance_mi": 2.41
+    },
+    {
+     "calendar_date": "2024-01-31",
+     "trips": 1541,
+     "revenue": 32551.46,
+     "avg_distance_mi": 2.59
+    }
+   ]
+  },
+  {
+   "name": "hourly_demand",
+   "columns": [
+    "day_of_week",
+    "pickup_hour",
+    "trips"
+   ],
+   "rows": [
+    {
+     "day_of_week": 1,
+     "pickup_hour": 0,
+     "trips": 300
+    },
+    {
+     "day_of_week": 1,
+     "pickup_hour": 1,
+     "trips": 326
+    },
+    {
+     "day_of_week": 1,
+     "pickup_hour": 2,
+     "trips": 353
+    },
+    {
+     "day_of_week": 1,
+     "pickup_hour": 3,
+     "trips": 324
+    },
+    {
+     "day_of_week": 1,
+     "pickup_hour": 4,
+     "trips": 346
+    },
+    {
+     "day_of_week": 1,
+     "pickup_hour": 5,
+     "trips": 335
+    },
+    {
+     "day_of_week": 1,
+     "pickup_hour": 6,
+     "trips": 330
+    },
+    {
+     "day_of_week": 1,
+     "pickup_hour": 7,
+     "trips": 348
+    },
+    {
+     "day_of_week": 1,
+     "pickup_hour": 8,
+     "trips": 346
+    },
+    {
+     "day_of_week": 1,
+     "pickup_hour": 9,
+     "trips": 326
+    },
+    {
+     "day_of_week": 1,
+     "pickup_hour": 10,
+     "trips": 337
+    },
+    {
+     "day_of_week": 1,
+     "pickup_hour": 11,
+     "trips": 325
+    },
+    {
+     "day_of_week": 1,
+     "pickup_hour": 12,
+     "trips": 343
+    },
+    {
+     "day_of_week": 1,
+     "pickup_hour": 13,
+     "trips": 308
+    },
+    {
+     "day_of_week": 1,
+     "pickup_hour": 14,
+     "trips": 365
+    },
+    {
+     "day_of_week": 1,
+     "pickup_hour": 15,
+     "trips": 338
+    },
+    {
+     "day_of_week": 1,
+     "pickup_hour": 16,
+     "trips": 334
+    },
+    {
+     "day_of_week": 1,
+     "pickup_hour": 17,
+     "trips": 380
+    },
+    {
+     "day_of_week": 1,
+     "pickup_hour": 18,
+     "trips": 309
+    },
+    {
+     "day_of_week": 1,
+     "pickup_hour": 19,
+     "trips": 327
+    },
+    {
+     "day_of_week": 1,
+     "pickup_hour": 20,
+     "trips": 332
+    },
+    {
+     "day_of_week": 1,
+     "pickup_hour": 21,
+     "trips": 339
+    },
+    {
+     "day_of_week": 1,
+     "pickup_hour": 22,
+     "trips": 332
+    },
+    {
+     "day_of_week": 1,
+     "pickup_hour": 23,
+     "trips": 345
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 0,
+     "trips": 317
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 1,
+     "trips": 331
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 2,
+     "trips": 349
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 3,
+     "trips": 350
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 4,
+     "trips": 314
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 5,
+     "trips": 359
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 6,
+     "trips": 343
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 7,
+     "trips": 320
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 8,
+     "trips": 351
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 9,
+     "trips": 333
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 10,
+     "trips": 335
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 11,
+     "trips": 331
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 12,
+     "trips": 332
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 13,
+     "trips": 352
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 14,
+     "trips": 338
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 15,
+     "trips": 361
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 16,
+     "trips": 305
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 17,
+     "trips": 310
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 18,
+     "trips": 294
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 19,
+     "trips": 334
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 20,
+     "trips": 303
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 21,
+     "trips": 344
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 22,
+     "trips": 341
+    },
+    {
+     "day_of_week": 2,
+     "pickup_hour": 23,
+     "trips": 313
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 0,
+     "trips": 322
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 1,
+     "trips": 309
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 2,
+     "trips": 370
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 3,
+     "trips": 317
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 4,
+     "trips": 334
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 5,
+     "trips": 313
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 6,
+     "trips": 320
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 7,
+     "trips": 341
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 8,
+     "trips": 305
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 9,
+     "trips": 315
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 10,
+     "trips": 344
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 11,
+     "trips": 328
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 12,
+     "trips": 339
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 13,
+     "trips": 315
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 14,
+     "trips": 339
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 15,
+     "trips": 322
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 16,
+     "trips": 317
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 17,
+     "trips": 351
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 18,
+     "trips": 336
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 19,
+     "trips": 354
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 20,
+     "trips": 295
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 21,
+     "trips": 290
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 22,
+     "trips": 336
+    },
+    {
+     "day_of_week": 3,
+     "pickup_hour": 23,
+     "trips": 310
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 0,
+     "trips": 269
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 1,
+     "trips": 270
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 2,
+     "trips": 259
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 3,
+     "trips": 278
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 4,
+     "trips": 283
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 5,
+     "trips": 259
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 6,
+     "trips": 299
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 7,
+     "trips": 272
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 8,
+     "trips": 284
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 9,
+     "trips": 277
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 10,
+     "trips": 269
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 11,
+     "trips": 266
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 12,
+     "trips": 220
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 13,
+     "trips": 276
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 14,
+     "trips": 230
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 15,
+     "trips": 271
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 16,
+     "trips": 263
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 17,
+     "trips": 258
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 18,
+     "trips": 234
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 19,
+     "trips": 259
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 20,
+     "trips": 244
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 21,
+     "trips": 270
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 22,
+     "trips": 248
+    },
+    {
+     "day_of_week": 4,
+     "pickup_hour": 23,
+     "trips": 299
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 0,
+     "trips": 243
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 1,
+     "trips": 259
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 2,
+     "trips": 258
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 3,
+     "trips": 233
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 4,
+     "trips": 292
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 5,
+     "trips": 279
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 6,
+     "trips": 254
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 7,
+     "trips": 232
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 8,
+     "trips": 242
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 9,
+     "trips": 251
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 10,
+     "trips": 266
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 11,
+     "trips": 280
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 12,
+     "trips": 287
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 13,
+     "trips": 266
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 14,
+     "trips": 259
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 15,
+     "trips": 282
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 16,
+     "trips": 285
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 17,
+     "trips": 243
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 18,
+     "trips": 265
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 19,
+     "trips": 275
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 20,
+     "trips": 263
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 21,
+     "trips": 242
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 22,
+     "trips": 277
+    },
+    {
+     "day_of_week": 5,
+     "pickup_hour": 23,
+     "trips": 251
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 0,
+     "trips": 238
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 1,
+     "trips": 255
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 2,
+     "trips": 253
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 3,
+     "trips": 285
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 4,
+     "trips": 296
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 5,
+     "trips": 261
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 6,
+     "trips": 257
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 7,
+     "trips": 286
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 8,
+     "trips": 300
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 9,
+     "trips": 273
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 10,
+     "trips": 269
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 11,
+     "trips": 222
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 12,
+     "trips": 262
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 13,
+     "trips": 256
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 14,
+     "trips": 292
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 15,
+     "trips": 266
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 16,
+     "trips": 249
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 17,
+     "trips": 265
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 18,
+     "trips": 275
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 19,
+     "trips": 256
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 20,
+     "trips": 304
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 21,
+     "trips": 251
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 22,
+     "trips": 245
+    },
+    {
+     "day_of_week": 6,
+     "pickup_hour": 23,
+     "trips": 253
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 0,
+     "trips": 268
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 1,
+     "trips": 280
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 2,
+     "trips": 268
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 3,
+     "trips": 269
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 4,
+     "trips": 250
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 5,
+     "trips": 253
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 6,
+     "trips": 256
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 7,
+     "trips": 272
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 8,
+     "trips": 257
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 9,
+     "trips": 272
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 10,
+     "trips": 266
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 11,
+     "trips": 274
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 12,
+     "trips": 294
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 13,
+     "trips": 280
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 14,
+     "trips": 245
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 15,
+     "trips": 262
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 16,
+     "trips": 269
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 17,
+     "trips": 258
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 18,
+     "trips": 248
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 19,
+     "trips": 283
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 20,
+     "trips": 277
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 21,
+     "trips": 275
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 22,
+     "trips": 254
+    },
+    {
+     "day_of_week": 7,
+     "pickup_hour": 23,
+     "trips": 247
+    }
+   ]
+  },
+  {
+   "name": "busiest_pickup_zones",
+   "columns": [
+    "zone_id",
+    "zone_name",
+    "borough",
+    "trips",
+    "revenue"
+   ],
+   "rows": [
+    {
+     "zone_id": 186,
+     "zone_name": "Sample zone 186",
+     "borough": "Manhattan",
+     "trips": 2247,
+     "revenue": 45904.32
+    },
+    {
+     "zone_id": 79,
+     "zone_name": "Sample zone 79",
+     "borough": "Queens",
+     "trips": 2238,
+     "revenue": 46158.04
+    },
+    {
+     "zone_id": 161,
+     "zone_name": "Sample zone 161",
+     "borough": "EWR",
+     "trips": 2237,
+     "revenue": 46671.61
+    },
+    {
+     "zone_id": 236,
+     "zone_name": "Sample zone 236",
+     "borough": "Brooklyn",
+     "trips": 2216,
+     "revenue": 45689.7
+    },
+    {
+     "zone_id": 162,
+     "zone_name": "Sample zone 162",
+     "borough": "Manhattan",
+     "trips": 2204,
+     "revenue": 45540.34
+    },
+    {
+     "zone_id": 132,
+     "zone_name": "Sample zone 132",
+     "borough": "Manhattan",
+     "trips": 2194,
+     "revenue": 48446.5
+    },
+    {
+     "zone_id": 163,
+     "zone_name": "Sample zone 163",
+     "borough": "Queens",
+     "trips": 2191,
+     "revenue": 45562.74
+    },
+    {
+     "zone_id": 48,
+     "zone_name": "Sample zone 48",
+     "borough": "Manhattan",
+     "trips": 2181,
+     "revenue": 44819.22
+    },
+    {
+     "zone_id": 230,
+     "zone_name": "Sample zone 230",
+     "borough": "Brooklyn",
+     "trips": 2173,
+     "revenue": 44197.53
+    },
+    {
+     "zone_id": 142,
+     "zone_name": "Sample zone 142",
+     "borough": "Staten Island",
+     "trips": 2171,
+     "revenue": 45598.25
+    },
+    {
+     "zone_id": 237,
+     "zone_name": "Sample zone 237",
+     "borough": "Bronx",
+     "trips": 2159,
+     "revenue": 44944.47
+    },
+    {
+     "zone_id": 68,
+     "zone_name": "Sample zone 68",
+     "borough": "Brooklyn",
+     "trips": 2113,
+     "revenue": 44136.62
+    },
+    {
+     "zone_id": 138,
+     "zone_name": "Sample zone 138",
+     "borough": "Manhattan",
+     "trips": 2100,
+     "revenue": 47097.44
+    },
+    {
+     "zone_id": 170,
+     "zone_name": "Sample zone 170",
+     "borough": "Brooklyn",
+     "trips": 2084,
+     "revenue": 42942.57
+    },
+    {
+     "zone_id": 63,
+     "zone_name": "Sample zone 63",
+     "borough": "Bronx",
+     "trips": 96,
+     "revenue": 2183.52
+    }
+   ]
+  },
+  {
+   "name": "payment_mix",
+   "columns": [
+    "payment_type_id",
+    "payment_type_name",
+    "trips",
+    "revenue",
+    "tip_rate"
+   ],
+   "rows": [
+    {
+     "payment_type_id": 1,
+     "payment_type_name": "Credit card",
+     "trips": 35372,
+     "revenue": 759922.48,
+     "tip_rate": 0.1753
+    },
+    {
+     "payment_type_id": 2,
+     "payment_type_name": "Cash",
+     "trips": 10921,
+     "revenue": 209745.98,
+     "tip_rate": 0.0
+    },
+    {
+     "payment_type_id": 3,
+     "payment_type_name": "No charge",
+     "trips": 1480,
+     "revenue": 27865.07,
+     "tip_rate": 0.0
+    },
+    {
+     "payment_type_id": 4,
+     "payment_type_name": "Dispute",
+     "trips": 1444,
+     "revenue": 27514.49,
+     "tip_rate": 0.0
+    }
+   ]
+  }
+ ],
+ "source_note": "Synthetic sample data from nyc-lake ingest --sample, not TLC trip records; the figures show the pipeline working, not real taxi demand."
+}

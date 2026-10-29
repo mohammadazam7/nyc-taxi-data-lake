@@ -43,12 +43,32 @@ cloud-only code path.
 | load | warehouse zone in S3 | Redshift `taxi` schema | Redshift Data API |
 | analytics | warehouse zone | `analytics/<taxi>/<start>_<end>.json` | Spark SQL |
 | dashboard | analytics report, raw manifests | `analytics/<taxi>/<start>_<end>.html` | Python |
+| explore | analytics report, raw manifests | `<start>_<end>.explorer.html`, or JSON for `web/` with `--json` | Python |
+| City Pulse | the `explore --json` file | static site on GitHub Pages | React, three.js |
 
 In AWS the lake is three S3 buckets (lake, artifacts, Athena results). Clean, model,
 quality and load run as Glue 5.0 jobs that install this package as a wheel; a Step
 Functions state machine chains them and an EventBridge Scheduler schedule starts it
 monthly. Redshift Serverless holds the star schema for SQL clients, and the Glue Data
 Catalog with Athena exposes every zone for ad hoc queries.
+
+### City Pulse explorer
+
+```mermaid
+flowchart LR
+    REP[analytics report JSON] -->|nyc-lake explore --json| DATA[web/public/data/report.json]
+    DATA -->|fetch + zod validation| STORE[Zustand store]
+    STORE --> SCENE[3D landscape<br/>React Three Fiber]
+    STORE --> PANELS[KPIs, peak slots,<br/>daily trend, zones, payments]
+    SCENE <-->|hover, select, hour| STORE
+    PANELS <-->|brush, focus, play| STORE
+```
+
+The 3D view and the panels never talk to each other directly: each reads and writes the
+store, so a brush on the daily trend, a click on a bar and the hour player all stay in
+step. The 168 bars are one instanced mesh, one draw call. three.js is a separate chunk
+loaded after the page paints, and a WebGL check before the scene loads switches to a
+table when the browser cannot render it ([ADR 0006](adr/0006-react-explorer-alongside-the-static-dashboard.md)).
 
 ## Contracts between stages
 

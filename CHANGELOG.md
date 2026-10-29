@@ -5,6 +5,14 @@ All notable changes are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+- City Pulse, an interactive explorer in `web/` (Vite, React, TypeScript, three.js via
+  React Three Fiber): a 3D weekday by hour demand view, an hour-by-hour player,
+  click-to-focus slot detail, a brushable daily trend that drives the summary figures,
+  sortable zones and the payment mix. Deployed to GitHub Pages by a new workflow.
+- `nyc-lake explore`, which renders the analytics report as an interactive page, or
+  with `--json` exports it with its provenance note for the explorer.
+
 ## [1.0.0] - 2026-10-28
 
 ### Added

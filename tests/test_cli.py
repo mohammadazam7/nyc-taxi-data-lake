@@ -216,6 +216,39 @@ def test_dashboard_renders_the_report_and_states_the_source(
     assert "Hand-written note." in page.read_text()
 
 
+def test_explore_writes_the_explorer_next_to_the_report(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    analytics_report: AnalyticsReport,
+) -> None:
+    monkeypatch.setenv("NYC_LAKE_ROOT", str(tmp_path))
+    main(["ingest", "2024-01", "--sample", "--sample-rows", "100"])
+    reports = tmp_path / "analytics" / "yellow"
+    reports.mkdir(parents=True)
+    (reports / "2024-01_2024-02.json").write_text(analytics_report.to_json())
+    capsys.readouterr()
+
+    assert main(["explore", "2024-01", "2024-02"]) == 0
+    page = reports / "2024-01_2024-02.explorer.html"
+    assert f"wrote {page}" in capsys.readouterr().out
+    assert "Synthetic sample data" in page.read_text()
+
+    data_file = tmp_path / "web" / "report.json"
+    assert main(["explore", "2024-01", "2024-02", "--json", str(data_file)]) == 0
+    exported = json.loads(data_file.read_text())
+    assert exported["source_note"].startswith("Synthetic sample data")
+    assert exported["results"] == analytics_report.to_dict()["results"]
+
+
+def test_explore_without_a_report_points_at_analytics(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv("NYC_LAKE_ROOT", str(tmp_path))
+    assert main(["explore", "2024-03"]) == 1
+    assert "nyc-lake explore: no report" in capsys.readouterr().out
+
+
 def test_dashboard_without_a_report_points_at_analytics(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:

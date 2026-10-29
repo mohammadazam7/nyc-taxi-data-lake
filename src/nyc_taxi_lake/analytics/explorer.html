@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__</title>
+<style>
+:root {
+  --bg: #0a0d14; --panel: #111622; --panel2: #151b29; --line: #232b3d; --fg: #e8ecf4;
+  --muted: #8b95a8; --dim: #5d677a; --accent: #f7b733; --accent2: #4fa3ff; --accent3: #36d39a;
+  --warn: #f5a524; --shadow: 0 18px 50px -24px rgba(0, 0, 0, .8);
+  font: 14px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--fg); }
+body { background:
+  radial-gradient(1200px 500px at 85% -10%, rgba(79, 163, 255, .12), transparent 60%),
+  radial-gradient(900px 500px at -10% 10%, rgba(247, 183, 51, .10), transparent 60%), var(--bg); }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 22px 20px 48px; }
+header { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.mark { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center;
+  background: linear-gradient(135deg, #f7b733, #fc4a1a); color: #111; font-weight: 800; }
+h1 { font-size: 20px; margin: 0; letter-spacing: -.01em; }
+.sub { color: var(--muted); font-size: 13px; }
+.pill { margin-left: auto; font-size: 12px; padding: 6px 10px; border-radius: 999px;
+  border: 1px solid rgba(245, 165, 36, .35); color: var(--warn); background: rgba(245, 165, 36, .08); }
+.pill.ok { color: var(--accent3); border-color: rgba(54, 211, 154, .35); background: rgba(54, 211, 154, .08); }
+.kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 20px 0 14px; }
+.card { background: linear-gradient(180deg, var(--panel2), var(--panel)); border: 1px solid var(--line);
+  border-radius: 14px; box-shadow: var(--shadow); position: relative; }
+.kpi { padding: 14px 16px 12px; overflow: hidden; }
+.kpi .k { color: var(--muted); font-size: 12px; }
+.kpi .v { font-size: 26px; font-weight: 650; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.kpi .d { color: var(--dim); font-size: 11.5px; margin-top: 2px; }
+.kpi canvas { position: absolute; inset: auto 0 0 0; width: 100%; height: 34px; opacity: .55; }
+.grid2 { display: grid; grid-template-columns: 1.75fr 1fr; gap: 14px; }
+.grid2b { display: grid; grid-template-columns: 1.35fr 1fr; gap: 14px; margin-top: 14px; }
+.head { display: flex; align-items: baseline; gap: 10px; padding: 14px 16px 0; }
+.head h2 { font-size: 14px; margin: 0; font-weight: 650; }
+.head .note { color: var(--muted); font-size: 12px; }
+.seg { margin-left: auto; display: inline-flex; background: #0c111b; border: 1px solid var(--line);
+  border-radius: 9px; padding: 2px; }
+.seg button { all: unset; cursor: pointer; font-size: 12px; color: var(--muted); padding: 4px 10px; border-radius: 7px; }
+.seg button[aria-pressed="true"] { background: #1d2638; color: var(--fg); }
+#scene { display: block; width: 100%; height: 420px; cursor: grab; }
+#scene:active { cursor: grabbing; }
+.hint { position: absolute; left: 16px; bottom: 12px; color: var(--dim); font-size: 11.5px; }
+.peaks { list-style: none; margin: 10px 0 0; padding: 0 10px 12px; }
+.peaks li { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; align-items: center;
+  padding: 9px 8px; border-radius: 9px; cursor: pointer; }
+.peaks li:hover, .peaks li.on { background: #1a2233; }
+.peaks .r { color: var(--dim); font-variant-numeric: tabular-nums; }
+.peaks .bar { height: 6px; border-radius: 3px; background: linear-gradient(90deg, #f7b733, #fc4a1a); margin-top: 5px; }
+.peaks .n { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12.5px; }
+.mini { padding: 4px 16px 14px; color: var(--muted); font-size: 12px; display: flex; gap: 18px; flex-wrap: wrap; }
+.mini b { color: var(--fg); font-weight: 600; }
+#timeline { display: block; width: 100%; height: 200px; cursor: crosshair; }
+.range { color: var(--muted); font-size: 12px; }
+.range b { color: var(--fg); }
+#zones { padding: 10px 16px 16px; }
+.zrow { display: grid; grid-template-columns: 170px 1fr 70px; gap: 10px; align-items: center; height: 24px; font-size: 12.5px; }
+.zrow .zn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.zrow .zn small { color: var(--dim); }
+.zrow .zb { height: 10px; border-radius: 5px; background: linear-gradient(90deg, #4fa3ff, #8b5cf6);
+  transform-origin: left; transition: width .6s cubic-bezier(.2, .8, .2, 1); }
+.zrow .zv { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+.donut { display: grid; grid-template-columns: 200px 1fr; gap: 10px; align-items: center; padding: 8px 16px 16px; }
+#donut { width: 200px; height: 200px; }
+.legend { list-style: none; margin: 0; padding: 0; font-size: 12.5px; }
+.legend li { display: grid; grid-template-columns: 12px 1fr auto; gap: 8px; align-items: center; padding: 7px 8px; border-radius: 8px; cursor: default; }
+.legend li.on { background: #1a2233; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; }
+.legend .x { color: var(--muted); font-variant-numeric: tabular-nums; }
+#tip { position: fixed; pointer-events: none; z-index: 10; background: rgba(12, 16, 26, .96); border: 1px solid var(--line);
+  border-radius: 10px; padding: 8px 10px; font-size: 12px; box-shadow: var(--shadow); opacity: 0; transition: opacity .12s; }
+#tip b { display: block; font-size: 13px; }
+footer { color: var(--dim); font-size: 12px; margin-top: 22px; }
+@media (max-width: 900px) {
+  .kpis { grid-template-columns: repeat(2, 1fr); }
+  .grid2, .grid2b { grid-template-columns: 1fr; }
+  .donut { grid-template-columns: 1fr; justify-items: center; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark">NY</div>
+    <div>
+      <h1 id="title"></h1>
+      <div class="sub" id="subtitle"></div>
+    </div>
+    <div class="pill" id="prov"></div>
+  </header>
+
+  <section class="kpis" id="kpis"></section>
+
+  <section class="grid2">
+    <div class="card">
+      <div class="head"><h2>Demand landscape</h2><span class="note">pickups by weekday and hour</span>
+        <div class="seg" id="view"><button aria-pressed="true" data-v="3d">3D</button><button aria-pressed="false" data-v="top">Top</button></div>
+      </div>
+      <canvas id="scene"></canvas>
+      <div class="hint">Drag to rotate · scroll to zoom · hover a bar</div>
+    </div>
+    <div class="card">
+      <div class="head"><h2>Peak slots</h2><span class="note">busiest weekday and hour</span></div>
+      <ul class="peaks" id="peaks"></ul>
+      <div class="mini" id="shape"></div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:14px">
+    <div class="head"><h2>Daily trend</h2><span class="range" id="range"></span>
+      <div class="seg" id="metric"><button aria-pressed="true" data-m="trips">Trips</button><button aria-pressed="false" data-m="revenue">Revenue</button><button aria-pressed="false" data-m="avg_distance_mi">Avg distance</button></div>
+    </div>
+    <canvas id="timeline"></canvas>
+    <div class="mini"><span>Drag across the chart to select days; the figures at the top follow the selection. Double-click to reset.</span></div>
+  </section>
+
+  <section class="grid2b">
+    <div class="card">
+      <div class="head"><h2>Busiest pickup zones</h2><span class="note">top 15</span>
+        <div class="seg" id="zsort"><button aria-pressed="true" data-z="trips">Trips</button><button aria-pressed="false" data-z="revenue">Revenue</button></div>
+      </div>
+      <div id="zones"></div>
+    </div>
+    <div class="card">
+      <div class="head"><h2>Payment mix</h2><span class="note">share of trips</span></div>
+      <div class="donut"><canvas id="donut"></canvas><ul class="legend" id="legend"></ul></div>
+    </div>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+<div id="tip"></div>
+<script>
+"use strict";
+const REPORT = __DATA__;
+
+const $ = (s) => document.querySelector(s);
+const R = (name) => REPORT.results.find((r) => r.name === name) || { rows: [] };
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const nf = new Intl.NumberFormat("en-US");
+const money = (v) => "$" + nf.format(Math.round(v));
+const tip = $("#tip");
+function showTip(e, html) {
+  tip.innerHTML = html; tip.style.opacity = 1;
+  const x = Math.min(e.clientX + 14, innerWidth - tip.offsetWidth - 8);
+  tip.style.left = x + "px"; tip.style.top = (e.clientY + 14) + "px";
+}
+function hideTip() { tip.style.opacity = 0; }
+function fit(canvas) {
+  const dpr = window.devicePixelRatio || 1, r = canvas.getBoundingClientRect();
+  canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr);
+  const ctx = canvas.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { ctx, w: r.width, h: r.height };
+}
+
+/* ---------- header ---------- */
+const monthLabel = (key) => { const [y, m] = key.split("-"); return MONTHS[+m - 1] + " " + y; };
+const span = REPORT.start === REPORT.end ? monthLabel(REPORT.start) : monthLabel(REPORT.start) + " to " + monthLabel(REPORT.end);
+const taxi = REPORT.taxi_type.charAt(0).toUpperCase() + REPORT.taxi_type.slice(1);
+$("#title").textContent = "NYC " + taxi + " taxi trips";
+$("#subtitle").textContent = span + " · from the warehouse zone via nyc-lake analytics";
+const prov = $("#prov");
+if (REPORT.source_note) {
+  prov.textContent = REPORT.source_note.startsWith("Source:") ? "TLC trip records" : "Synthetic sample data";
+  prov.title = REPORT.source_note;
+  if (REPORT.source_note.startsWith("Source:")) prov.classList.add("ok");
+} else prov.remove();
+$("#foot").textContent = (REPORT.source_note ? REPORT.source_note + " " : "") +
+  "Generated by nyc-lake explore from the analytics report; every figure comes from the SQL in src/nyc_taxi_lake/analytics/sql.";
+
+/* ---------- KPIs ---------- */
+const daily = R("daily_trips").rows;
+const monthly = R("monthly_revenue").rows;
+const tipsShare = (() => { let t = 0, f = 0; monthly.forEach((r) => { t += r.tips || 0; f += r.fares || 0; }); return f ? t / f : 0; })();
+const KPI = [
+  { k: "Trips", f: (s) => nf.format(s.trips), spark: "trips" },
+  { k: "Revenue", f: (s) => money(s.revenue), spark: "revenue" },
+  { k: "Revenue per trip", f: (s) => s.trips ? "$" + (s.revenue / s.trips).toFixed(2) : "n/a" },
+  { k: "Trips per day", f: (s) => s.days ? nf.format(Math.round(s.trips / s.days)) : "n/a" },
+  { k: "Tips as share of fares", f: () => (tipsShare * 100).toFixed(1) + "%", d: "whole report" },
+];
+$("#kpis").innerHTML = KPI.map((k, i) => `<div class="card kpi"><div class="k">${k.k}</div><div class="v" id="kv${i}">0</div><div class="d" id="kd${i}"></div>${k.spark ? `<canvas id="ks${i}"></canvas>` : ""}</div>`).join("");
+let sel = [0, daily.length - 1];
+function stats() {
+  const s = { trips: 0, revenue: 0, days: 0 };
+  for (let i = sel[0]; i <= sel[1]; i++) { s.trips += daily[i].trips || 0; s.revenue += daily[i].revenue || 0; s.days++; }
+  return s;
+}
+function renderKpis() {
+  const s = stats(), label = sel[0] === 0 && sel[1] === daily.length - 1 ? "all " + daily.length + " days" : s.days + " selected days";
+  KPI.forEach((k, i) => { $("#kv" + i).textContent = k.f(s); $("#kd" + i).textContent = k.d || label; });
+}
+function sparks() {
+  KPI.forEach((k, i) => {
+    if (!k.spark) return;
+    const { ctx, w, h } = fit($("#ks" + i)), v = daily.map((r) => r[k.spark] || 0);
+    const lo = Math.min(...v), hi = Math.max(...v) || 1;
+    const g = ctx.createLinearGradient(0, 0, 0, h); g.addColorStop(0, "rgba(79,163,255,.45)"); g.addColorStop(1, "rgba(79,163,255,0)");
+    ctx.beginPath();
+    v.forEach((y, j) => { const X = (j / Math.max(1, v.length - 1)) * w, Y = h - 3 - ((y - lo) / ((hi - lo) || 1)) * (h - 8); j ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); });
+    ctx.strokeStyle = "rgba(79,163,255,.9)"; ctx.lineWidth = 1.4; ctx.stroke();
+    ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.fillStyle = g; ctx.fill();
+  });
+}
+function countUp() {
+  const s = stats(), t0 = performance.now();
+  const step = (t) => {
+    const p = Math.min(1, (t - t0) / 900), e = 1 - Math.pow(1 - p, 3);
+    const part = { trips: s.trips * e, revenue: s.revenue * e, days: s.days };
+    KPI.forEach((k, i) => { if (i < 2) $("#kv" + i).textContent = k.f({ ...part, trips: Math.round(part.trips) }); });
+    if (p < 1) requestAnimationFrame(step); else renderKpis();
+  };
+  renderKpis(); requestAnimationFrame(step);
+}
+
+/* ---------- 3D demand landscape ---------- */
+const grid = DAYS.map(() => new Array(24).fill(0));
+R("hourly_demand").rows.forEach((r) => { grid[(r.day_of_week || 1) - 1][r.pickup_hour || 0] = r.trips || 0; });
+const gmax = Math.max(1, ...grid.flat()), gmin = Math.min(...grid.flat());
+const scene = $("#scene");
+const cam = { yaw: -0.62, pitch: 0.58, zoom: 1, target: null };
+let hover = null, focus = null, dragging = null, idle = 0;
+function ramp(t) {
+  const stops = [[24, 40, 74], [53, 99, 178], [79, 163, 255], [247, 183, 51], [252, 74, 26]];
+  const x = Math.max(0, Math.min(1, t)) * (stops.length - 1), i = Math.min(stops.length - 2, Math.floor(x)), f = x - i;
+  return stops[i].map((c, j) => Math.round(c + (stops[i + 1][j] - c) * f));
+}
+const shade = (c, k) => `rgb(${c.map((v) => Math.round(v * k)).join(",")})`;
+let boxes = [];
+function drawScene() {
+  const { ctx, w, h } = fit(scene);
+  ctx.clearRect(0, 0, w, h);
+  const cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw), cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+  const S = Math.min(w / 34, h / 20) * cam.zoom;
+  const ox = w / 2, oy = h * 0.6;
+  const P = (x, y, z) => { // x: hour axis, z: weekday axis, y: up
+    const rx = x * cy - z * sy, rz = x * sy + z * cy;
+    const ry = y * cp - rz * sp, d = y * sp + rz * cp;
+    return [ox + rx * S, oy - ry * S, d];
+  };
+  // floor
+  const fl = [P(-12.6, 0, -4.1), P(12.6, 0, -4.1), P(12.6, 0, 4.1), P(-12.6, 0, 4.1)];
+  ctx.beginPath(); fl.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath();
+  ctx.fillStyle = "rgba(255,255,255,.025)"; ctx.fill(); ctx.strokeStyle = "rgba(255,255,255,.08)"; ctx.stroke();
+  ctx.font = "11px Inter, system-ui, sans-serif"; ctx.fillStyle = "#6f7a8f"; ctx.textAlign = "center";
+  for (let hr = 0; hr < 24; hr += 3) { const p = P(hr - 11.5, 0, 4.9); ctx.fillText(String(hr).padStart(2, "0") + ":00", p[0], p[1] + 4); }
+  DAYS.forEach((d, i) => { const p = P(-13.6, 0, i - 3); ctx.fillText(d, p[0], p[1] + 4); });
+  boxes = [];
+  const top = cam.pitch > 1.45;
+  for (let d = 0; d < 7; d++) for (let hr = 0; hr < 24; hr++) {
+    const v = grid[d][hr], t = (v - gmin) / ((gmax - gmin) || 1), H = top ? 0.05 : 0.25 + t * 7.5 * appear;
+    const x0 = hr - 11.5 - 0.38, x1 = hr - 11.5 + 0.38, z0 = d - 3 - 0.38, z1 = d - 3 + 0.38;
+    const c = P((x0 + x1) / 2, H / 2, (z0 + z1) / 2);
+    boxes.push({ d, hr, v, t, H, x0, x1, z0, z1, depth: c[2] });
+  }
+  boxes.sort((a, b) => a.depth - b.depth);
+  const faces = (b) => {
+    const v = [P(b.x0, 0, b.z0), P(b.x1, 0, b.z0), P(b.x1, 0, b.z1), P(b.x0, 0, b.z1), P(b.x0, b.H, b.z0), P(b.x1, b.H, b.z0), P(b.x1, b.H, b.z1), P(b.x0, b.H, b.z1)];
+    return [[[4, 5, 6, 7], 1.12], [[0, 1, 5, 4], 0.78], [[1, 2, 6, 5], 0.62], [[2, 3, 7, 6], 0.78], [[3, 0, 4, 7], 0.62]].map(([ix, k]) => ({ pts: ix.map((i) => v[i]), k, z: ix.reduce((s, i) => s + v[i][2], 0) / 4 }));
+  };
+  for (const b of boxes) {
+    const base = ramp(b.t), hot = (hover && hover.d === b.d && hover.hr === b.hr) || (focus && focus.d === b.d && focus.hr === b.hr);
+    const dimmed = focus && !hot;
+    const fs = faces(b).sort((a, c) => a.z - c.z);
+    b.poly = null;
+    for (const f of fs) {
+      ctx.beginPath(); f.pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath();
+      ctx.globalAlpha = dimmed ? 0.35 : 1;
+      ctx.fillStyle = hot ? shade([255, 255, 255], f.k * 0.95) : shade(base, f.k); ctx.fill();
+      if (f.k > 1) b.poly = f.pts;
+    }
+    ctx.globalAlpha = 1;
+  }
+  if (focus) {
+    const b = boxes.find((x) => x.d === focus.d && x.hr === focus.hr), p = P(b.x0 + 0.38, b.H + 0.6, b.z0 + 0.38);
+    ctx.fillStyle = "#fff"; ctx.font = "600 12px Inter, system-ui, sans-serif";
+    ctx.fillText(DAYS[b.d] + " " + String(b.hr).padStart(2, "0") + ":00 · " + nf.format(b.v), p[0], p[1] - 6);
+  }
+}
+let appear = 0;
+function inPoly(x, y, pts) {
+  let c = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const [xi, yi] = pts[i], [xj, yj] = pts[j];
+    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c;
+  }
+  return c;
+}
+scene.addEventListener("pointerdown", (e) => { dragging = { x: e.clientX, y: e.clientY, yaw: cam.yaw, pitch: cam.pitch }; cam.target = null; scene.setPointerCapture(e.pointerId); });
+scene.addEventListener("pointerup", () => { dragging = null; });
+scene.addEventListener("pointermove", (e) => {
+  idle = performance.now();
+  if (dragging) {
+    cam.yaw = dragging.yaw + (e.clientX - dragging.x) * 0.008;
+    cam.pitch = Math.max(0.15, Math.min(1.52, dragging.pitch + (e.clientY - dragging.y) * 0.006));
+    hideTip(); return;
+  }
+  const r = scene.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  hover = null;
+  for (let i = boxes.length - 1; i >= 0; i--) { const b = boxes[i]; if (b.poly && inPoly(x, y, b.poly)) { hover = b; break; } }
+  if (hover) {
+    const avg = grid.flat().reduce((a, b) => a + b, 0) / 168;
+    showTip(e, `<b>${DAYS[hover.d]} ${String(hover.hr).padStart(2, "0")}:00 to ${String((hover.hr + 1) % 24).padStart(2, "0")}:00</b>${nf.format(hover.v)} pickups · ${(hover.v / avg).toFixed(2)}x the average hour`);
+  } else hideTip();
+});
+scene.addEventListener("pointerleave", () => { hover = null; hideTip(); });
+scene.addEventListener("wheel", (e) => { e.preventDefault(); cam.zoom = Math.max(0.6, Math.min(2.2, cam.zoom * (e.deltaY > 0 ? 0.92 : 1.08))); }, { passive: false });
+$("#view").addEventListener("click", (e) => {
+  const v = e.target.dataset.v; if (!v) return;
+  [...$("#view").children].forEach((b) => b.setAttribute("aria-pressed", b.dataset.v === v));
+  cam.target = v === "top" ? { yaw: 0, pitch: 1.5 } : { yaw: -0.62, pitch: 0.58 };
+});
+function loop(t) {
+  if (appear < 1) appear = Math.min(1, appear + 0.022);
+  if (cam.target) {
+    cam.yaw += (cam.target.yaw - cam.yaw) * 0.12; cam.pitch += (cam.target.pitch - cam.pitch) * 0.12;
+    if (Math.abs(cam.target.yaw - cam.yaw) + Math.abs(cam.target.pitch - cam.pitch) < 0.002) cam.target = null;
+  } else if (!dragging && !hover && !focus && t - idle > 4000) cam.yaw += 0.0016;
+  drawScene();
+  requestAnimationFrame(loop);
+}
+
+/* ---------- peak slots ---------- */
+const slots = [];
+grid.forEach((row, d) => row.forEach((v, hr) => slots.push({ d, hr, v })));
+slots.sort((a, b) => b.v - a.v);
+const peak = slots.slice(0, 6);
+$("#peaks").innerHTML = peak.map((s, i) => `<li data-i="${i}"><span class="r">${i + 1}</span><div><div>${DAYS[s.d]} ${String(s.hr).padStart(2, "0")}:00</div><div class="bar" style="width:${(s.v / peak[0].v) * 100}%"></div></div><span class="n">${nf.format(s.v)}</span></li>`).join("");
+$("#peaks").addEventListener("pointerover", (e) => {
+  const li = e.target.closest("li"); if (!li) return;
+  [...$("#peaks").children].forEach((x) => x.classList.toggle("on", x === li));
+  focus = peak[+li.dataset.i];
+});
+$("#peaks").addEventListener("pointerleave", () => { focus = null; [...$("#peaks").children].forEach((x) => x.classList.remove("on")); });
+const byDay = grid.map((r) => r.reduce((a, b) => a + b, 0)), byHour = new Array(24).fill(0).map((_, hr) => grid.reduce((a, r) => a + r[hr], 0));
+const wk = byDay.slice(0, 5).reduce((a, b) => a + b, 0) / 5, we = (byDay[5] + byDay[6]) / 2;
+const bestHour = byHour.indexOf(Math.max(...byHour)), quiet = byHour.indexOf(Math.min(...byHour));
+$("#shape").innerHTML = `<span>Busiest hour <b>${String(bestHour).padStart(2, "0")}:00</b></span><span>Quietest <b>${String(quiet).padStart(2, "0")}:00</b></span><span>Weekend vs weekday <b>${((we / wk - 1) * 100).toFixed(0)}%</b></span>`;
+
+/* ---------- daily timeline with brush ---------- */
+const tl = $("#timeline");
+let metric = "trips", brush = null;
+function drawTimeline() {
+  const { ctx, w, h } = fit(tl), pad = { l: 56, r: 18, t: 16, b: 26 };
+  const v = daily.map((r) => +r[metric] || 0), hi = Math.max(...v) * 1.1 || 1;
+  const X = (i) => pad.l + (i / Math.max(1, v.length - 1)) * (w - pad.l - pad.r), Y = (y) => h - pad.b - (y / hi) * (h - pad.t - pad.b);
+  ctx.clearRect(0, 0, w, h);
+  ctx.font = "11px Inter, system-ui, sans-serif"; ctx.fillStyle = "#6f7a8f"; ctx.textAlign = "right";
+  for (let k = 0; k <= 4; k++) {
+    const y = (hi / 4) * k, Yy = Y(y);
+    ctx.strokeStyle = "rgba(255,255,255,.05)"; ctx.beginPath(); ctx.moveTo(pad.l, Yy); ctx.lineTo(w - pad.r, Yy); ctx.stroke();
+    ctx.fillText(metric === "revenue" ? "$" + (y >= 1000 ? Math.round(y / 1000) + "k" : Math.round(y)) : metric === "trips" ? nf.format(Math.round(y)) : y.toFixed(1) + " mi", pad.l - 8, Yy + 4);
+  }
+  ctx.textAlign = "center";
+  daily.forEach((r, i) => { if (i % Math.ceil(daily.length / 10) === 0) ctx.fillText(String(r.calendar_date).slice(5), X(i), h - 8); });
+  if (sel[0] !== 0 || sel[1] !== daily.length - 1) {
+    ctx.fillStyle = "rgba(79,163,255,.10)"; ctx.fillRect(X(sel[0]) - 3, pad.t, X(sel[1]) - X(sel[0]) + 6, h - pad.t - pad.b);
+  }
+  const g = ctx.createLinearGradient(0, pad.t, 0, h - pad.b); g.addColorStop(0, "rgba(247,183,51,.35)"); g.addColorStop(1, "rgba(247,183,51,0)");
+  ctx.beginPath(); v.forEach((y, i) => i ? ctx.lineTo(X(i), Y(y)) : ctx.moveTo(X(i), Y(y)));
+  ctx.strokeStyle = "#f7b733"; ctx.lineWidth = 2; ctx.stroke();
+  ctx.lineTo(X(v.length - 1), h - pad.b); ctx.lineTo(X(0), h - pad.b); ctx.fillStyle = g; ctx.fill();
+  if (tl._hover != null) {
+    const i = tl._hover; ctx.strokeStyle = "rgba(255,255,255,.25)"; ctx.beginPath(); ctx.moveTo(X(i), pad.t); ctx.lineTo(X(i), h - pad.b); ctx.stroke();
+    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(X(i), Y(v[i]), 4, 0, 7); ctx.fill();
+  }
+  tl._X = X; tl._pad = pad; tl._w = w;
+  const s = daily[sel[0]], e = daily[sel[1]];
+  $("#range").innerHTML = s ? `<b>${s.calendar_date}</b> to <b>${e.calendar_date}</b>` : "";
+}
+const idxAt = (e) => {
+  const r = tl.getBoundingClientRect(), x = e.clientX - r.left, p = tl._pad;
+  return Math.max(0, Math.min(daily.length - 1, Math.round(((x - p.l) / (tl._w - p.l - p.r)) * (daily.length - 1))));
+};
+tl.addEventListener("pointerdown", (e) => { brush = idxAt(e); tl.setPointerCapture(e.pointerId); });
+tl.addEventListener("pointermove", (e) => {
+  const i = idxAt(e); tl._hover = i;
+  if (brush != null) { sel = [Math.min(brush, i), Math.max(brush, i)]; renderKpis(); }
+  const r = daily[i];
+  showTip(e, `<b>${r.calendar_date}</b>${nf.format(r.trips)} trips · ${money(r.revenue)} · ${(+r.avg_distance_mi).toFixed(2)} mi avg`);
+  drawTimeline();
+});
+tl.addEventListener("pointerup", () => { brush = null; });
+tl.addEventListener("pointerleave", () => { tl._hover = null; hideTip(); drawTimeline(); });
+tl.addEventListener("dblclick", () => { sel = [0, daily.length - 1]; renderKpis(); drawTimeline(); });
+$("#metric").addEventListener("click", (e) => {
+  const m = e.target.dataset.m; if (!m) return; metric = m;
+  [...$("#metric").children].forEach((b) => b.setAttribute("aria-pressed", b.dataset.m === m)); drawTimeline();
+});
+
+/* ---------- zones ---------- */
+const zones = R("busiest_pickup_zones").rows;
+let zkey = "trips";
+function drawZones() {
+  const rows = [...zones].sort((a, b) => b[zkey] - a[zkey]), hi = rows.length ? rows[0][zkey] : 1;
+  $("#zones").innerHTML = rows.map((z) => `<div class="zrow"><div class="zn" title="${z.zone_name} (${z.borough})">${z.zone_name} <small>${z.borough}</small></div><div><div class="zb" style="width:0%" data-w="${(z[zkey] / hi) * 100}"></div></div><div class="zv">${zkey === "trips" ? nf.format(z.trips) : money(z.revenue)}</div></div>`).join("");
+  requestAnimationFrame(() => document.querySelectorAll(".zb").forEach((b, i) => setTimeout(() => { b.style.width = b.dataset.w + "%"; }, i * 35)));
+}
+$("#zsort").addEventListener("click", (e) => {
+  const z = e.target.dataset.z; if (!z) return; zkey = z;
+  [...$("#zsort").children].forEach((b) => b.setAttribute("aria-pressed", b.dataset.z === z)); drawZones();
+});
+
+/* ---------- payment donut ---------- */
+const pays = R("payment_mix").rows, ptotal = pays.reduce((a, p) => a + (p.trips || 0), 0) || 1;
+const PCOL = ["#4fa3ff", "#f7b733", "#36d39a", "#e86fa8", "#8b5cf6", "#8b95a8"];
+let pHover = -1, pAnim = 0;
+$("#legend").innerHTML = pays.map((p, i) => `<li data-i="${i}"><i style="background:${PCOL[i % PCOL.length]}"></i><span>${p.payment_type_name}</span><span class="x">${((p.trips / ptotal) * 100).toFixed(1)}%</span></li>`).join("");
+function drawDonut() {
+  const c = $("#donut"), { ctx, w, h } = fit(c), cx = w / 2, cy = h / 2, R0 = Math.min(w, h) / 2 - 8;
+  ctx.clearRect(0, 0, w, h);
+  let a = -Math.PI / 2;
+  c._arcs = [];
+  pays.forEach((p, i) => {
+    const da = (p.trips / ptotal) * Math.PI * 2 * pAnim, out = i === pHover ? 6 : 0, mid = a + da / 2;
+    ctx.beginPath(); ctx.arc(cx + Math.cos(mid) * out, cy + Math.sin(mid) * out, R0, a, a + da);
+    ctx.arc(cx + Math.cos(mid) * out, cy + Math.sin(mid) * out, R0 * 0.62, a + da, a, true); ctx.closePath();
+    ctx.fillStyle = PCOL[i % PCOL.length]; ctx.globalAlpha = pHover === -1 || pHover === i ? 1 : 0.4; ctx.fill(); ctx.globalAlpha = 1;
+    c._arcs.push([a, a + da]); a += da;
+  });
+  const p = pays[pHover] || null;
+  ctx.textAlign = "center"; ctx.fillStyle = "#e8ecf4"; ctx.font = "650 20px Inter, system-ui, sans-serif";
+  ctx.fillText(p ? ((p.trips / ptotal) * 100).toFixed(1) + "%" : nf.format(ptotal), cx, cy + 2);
+  ctx.fillStyle = "#8b95a8"; ctx.font = "11.5px Inter, system-ui, sans-serif";
+  ctx.fillText(p ? p.payment_type_name : "trips", cx, cy + 20);
+  if (p && p.tip_rate != null) ctx.fillText("tips " + (p.tip_rate * 100).toFixed(1) + "% of fares", cx, cy + 36);
+  [...$("#legend").children].forEach((li, i) => li.classList.toggle("on", i === pHover));
+}
+$("#donut").addEventListener("pointermove", (e) => {
+  const c = $("#donut"), r = c.getBoundingClientRect(), x = e.clientX - r.left - r.width / 2, y = e.clientY - r.top - r.height / 2;
+  const d = Math.hypot(x, y), R0 = Math.min(r.width, r.height) / 2 - 8;
+  let ang = Math.atan2(y, x); if (ang < -Math.PI / 2) ang += Math.PI * 2;
+  pHover = d > R0 * 0.6 && d < R0 + 8 ? c._arcs.findIndex(([s, t]) => ang >= s && ang < t) : -1;
+  drawDonut();
+});
+$("#donut").addEventListener("pointerleave", () => { pHover = -1; drawDonut(); });
+$("#legend").addEventListener("pointerover", (e) => { const li = e.target.closest("li"); if (li) { pHover = +li.dataset.i; drawDonut(); } });
+$("#legend").addEventListener("pointerleave", () => { pHover = -1; drawDonut(); });
+
+/* ---------- start ---------- */
+function start() {
+  countUp(); sparks(); drawTimeline(); drawZones();
+  const t0 = performance.now();
+  const grow = (t) => { pAnim = Math.min(1, (t - t0) / 900); pAnim = 1 - Math.pow(1 - pAnim, 3); drawDonut(); if (pAnim < 1) requestAnimationFrame(grow); };
+  requestAnimationFrame(grow);
+  requestAnimationFrame(loop);
+}
+addEventListener("resize", () => { sparks(); drawTimeline(); drawDonut(); });
+start();
+</script>
+</body>
+</html>
