@@ -11,3 +11,4 @@ later record supersedes an earlier one.
 | [0003](0003-quarantine-instead-of-drop.md) | Quarantine rejected rows with a reason code | Accepted |
 | [0004](0004-step-functions-for-orchestration.md) | Step Functions rather than Glue workflows or Airflow | Accepted |
 | [0005](0005-portable-analytics-sql-and-static-dashboard.md) | Portable analytics SQL and a static dashboard | Accepted |
+| [0006](0006-react-explorer-alongside-the-static-dashboard.md) | A React explorer alongside the static dashboard | Accepted |

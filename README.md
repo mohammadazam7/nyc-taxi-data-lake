@@ -40,6 +40,7 @@ flowchart LR
 | Warehouse | Terraform for Redshift Serverless, `COPY` loader, CloudWatch alarms, SNS | Done |
 | Orchestration | `run` and `backfill` commands, Docker image, Step Functions state machine on a monthly schedule | Done |
 | Analytics | Five SQL queries shared by Spark and Redshift, JSON report, static HTML dashboard | Done |
+| Explorer | City Pulse: React and three.js app over the report, deployed to GitHub Pages | Done |
 
 ## Quick start
 
@@ -278,6 +279,30 @@ artifact. It reads the raw-zone manifests and states the data source under the t
 a report built from `ingest --sample` months is labelled as synthetic. The CI smoke run
 uploads the dashboard for its three synthetic months as the `dashboard-synthetic-2024-q1`
 artifact. The figures in it describe the generator, not real taxi demand.
+
+## City Pulse explorer
+
+[**Open City Pulse**](https://mohammadazam7.github.io/nyc-taxi-data-lake/) · source in [`web/`](web/)
+
+City Pulse is an interactive explorer for the analytics report. A 3D landscape shows
+pickups for every weekday and hour; the panels around it are linked to it and to each
+other:
+
+- **Play the day** sweeps through the 24 hours, lighting that hour across the week.
+- **Click a bar** (or a row in Peak slots) to fly the camera to it and open its detail:
+  that day hour by hour, and that hour across the week.
+- **Drag across the daily trend** to select dates; the summary figures follow.
+- Orbit, Top and Street camera views, sortable zones, and a payment breakdown.
+
+```bash
+nyc-lake explore 2024-01 --json web/public/data/report.json   # export the report
+cd web && npm ci && npm run dev                               # http://localhost:5173
+```
+
+The page validates the report before drawing it, loads three.js after the first paint,
+and shows a table instead of the 3D view where WebGL is unavailable. The hosted copy is
+built from synthetic months and says so on the page. Design and trade-offs:
+[ADR 0006](docs/adr/0006-react-explorer-alongside-the-static-dashboard.md).
 
 ## Results
 
