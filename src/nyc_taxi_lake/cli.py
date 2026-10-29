@@ -9,6 +9,7 @@ import os
 import sys
 from collections.abc import Sequence
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pyarrow.parquet as pq
 
@@ -27,6 +28,10 @@ from nyc_taxi_lake.pipeline import (
     run_stages,
     timings,
 )
+
+if TYPE_CHECKING:
+    from nyc_taxi_lake.analytics.results import AnalyticsReport
+    from nyc_taxi_lake.paths import LakePath
 
 
 def _ingest(args: argparse.Namespace, settings: Settings) -> list[IngestResult]:
@@ -164,8 +169,11 @@ def _analytics(args: argparse.Namespace, settings: Settings) -> int:
     return 0
 
 
-def _dashboard(args: argparse.Namespace, settings: Settings) -> int:
-    from nyc_taxi_lake.analytics.dashboard import provenance_note, render
+def _load_report(
+    args: argparse.Namespace, settings: Settings, command: str
+) -> tuple[AnalyticsReport, str, LakePath, str] | None:
+    """The report for the month range, its provenance note, and where outputs go."""
+    from nyc_taxi_lake.analytics.dashboard import provenance_note
     from nyc_taxi_lake.analytics.results import AnalyticsReport
     from nyc_taxi_lake.ingest.raw_zone import MANIFEST, partition_dir
 
@@ -174,8 +182,8 @@ def _dashboard(args: argparse.Namespace, settings: Settings) -> int:
     reports = settings.analytics_root / settings.taxi_type
     source = reports / f"{name}.json"
     if not source.exists():
-        print(f"nyc-lake dashboard: no report at {source}; run nyc-lake analytics first")
-        return 1
+        print(f"nyc-lake {command}: no report at {source}; run nyc-lake analytics first")
+        return None
     report = AnalyticsReport.from_json(source.read_text())
 
     sources = []
@@ -184,8 +192,36 @@ def _dashboard(args: argparse.Namespace, settings: Settings) -> int:
         if manifest.exists():
             sources.append(json.loads(manifest.read_text())["source"])
     note = args.note if args.note is not None else provenance_note(sources)
+    return report, note, reports, name
 
+
+def _dashboard(args: argparse.Namespace, settings: Settings) -> int:
+    from nyc_taxi_lake.analytics.dashboard import render
+
+    loaded = _load_report(args, settings, "dashboard")
+    if loaded is None:
+        return 1
+    report, note, reports, name = loaded
     out = reports / f"{name}.html"
+    out.write_text(render(report, source_note=note))
+    print(f"wrote {out}")
+    return 0
+
+
+def _explore(args: argparse.Namespace, settings: Settings) -> int:
+    from nyc_taxi_lake.analytics.explorer import payload, render
+
+    loaded = _load_report(args, settings, "explore")
+    if loaded is None:
+        return 1
+    report, note, reports, name = loaded
+    if args.json is not None:
+        # The data file the City Pulse web app (web/) loads: the report plus its provenance.
+        args.json.parent.mkdir(parents=True, exist_ok=True)
+        args.json.write_text(json.dumps(payload(report, source_note=note), indent=1) + "\n")
+        print(f"wrote {args.json}")
+        return 0
+    out = reports / f"{name}.explorer.html"
     out.write_text(render(report, source_note=note))
     print(f"wrote {out}")
     return 0
@@ -358,6 +394,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="text shown under the title (default: the data source, from the raw manifests)",
     )
 
+    explore = sub.add_parser(
+        "explore", help="render an analytics report as an interactive HTML explorer next to it"
+    )
+    explore.add_argument("start", help="first month, YYYY-MM")
+    explore.add_argument("end", nargs="?", help="last month, YYYY-MM (default: start)")
+    explore.add_argument(
+        "--note",
+        help="provenance text shown on the page (default: the data source, from the raw manifests)",
+    )
+    explore.add_argument(
+        "--json",
+        type=Path,
+        help="write the report and its provenance as JSON for the web app instead of the HTML page",
+    )
+
     run = sub.add_parser("run", help="run the stages in order, each over the whole month range")
     run.add_argument("start", help="first month, YYYY-MM")
     run.add_argument("end", nargs="?", help="last month, YYYY-MM (default: start)")
@@ -401,6 +452,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _analytics(args, settings)
     if args.command == "dashboard":
         return _dashboard(args, settings)
+    if args.command == "explore":
+        return _explore(args, settings)
     if args.command == "run":
         return _run(args)
     if args.command == "backfill":

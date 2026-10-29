@@ -81,16 +81,16 @@ class AnalyticsReport:
                 return result
         raise KeyError(f"no {name!r} result in the report")
 
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "taxi_type": self.taxi_type,
+            "start": self.start,
+            "end": self.end,
+            "results": [r.to_dict() for r in self.results],
+        }
+
     def to_json(self) -> str:
-        return json.dumps(
-            {
-                "taxi_type": self.taxi_type,
-                "start": self.start,
-                "end": self.end,
-                "results": [r.to_dict() for r in self.results],
-            },
-            indent=2,
-        )
+        return json.dumps(self.to_dict(), indent=2)
 
     @classmethod
     def from_json(cls, text: str) -> AnalyticsReport:
