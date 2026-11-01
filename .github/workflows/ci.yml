@@ -111,7 +111,7 @@ jobs:
           nyc-lake dashboard 2024-01 2024-03
           grep -q "Synthetic sample data" "$NYC_LAKE_ROOT/analytics/yellow/2024-01_2024-03.html"
       - name: Upload the dashboard
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dashboard-synthetic-2024-q1
           path: ${{ runner.temp }}/lake/analytics/yellow/2024-01_2024-03.html
